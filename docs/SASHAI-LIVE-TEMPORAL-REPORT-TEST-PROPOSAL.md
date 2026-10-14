@@ -1,7 +1,7 @@
 # Proposed fresh Temporal-controlled Sashai report test
 
 Date: 2026-10-15
-Status: PROPOSED — live browser approval has not been granted by this document.
+Original proposal status: PROPOSED when written. Owner approval was subsequently granted in this ChatGPT conversation on 2026-10-15 (reply: “approve”). See the separate approved task contract in `SASHAI-LIVE-TEMPORAL-REPORT-TASK.md`. Approval does not establish dispatcher readiness or prove that a live browser task was submitted.
 Runtime: Oracle-only browser integration with a connector-preserving UI adapter; Repo Harness remains excluded.
 No Sashai product implementation or plan activation is included.
 
