@@ -13,7 +13,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import { observeSashaiConversation, parseSashaiChatUrl } from '../dist/sashai-observer.js';
-import { existsSync } from 'node:fs';
+import { existsSync, createWriteStream } from 'node:fs';
 import { resolve, join } from 'node:path';
 import os from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -55,25 +55,32 @@ async function synchronizeCDP(){
  }
  return {live:true,refreshedMarker:changed};
 }
+const debugEnabled = process.env.ORACLE_DEBUG !== '0';
 const flags=[
  '--engine','browser','--browser-attach-running','--chatgpt-url',project,
  '--browser-model-strategy','current','--browser-archive','never',
- '--browser-approval-wait','90s','--browser-timeout','4m'
+ '--browser-approval-wait','90s','--browser-timeout','4m',
+ ...(debugEnabled ? ['--verbose','--heartbeat','5'] : [])
 ];
 async function run(args,type,session){
  const slug='oracle-sashai-'+Date.now()+'-'+randomUUID().slice(0,5);
  const output=join(dir,slug+'.txt');
- const record={slug,type,project,started:now(),status:'starting',session:session??null,output,error:null};
+ const logFile=join(dir,slug+'.verbose.log');
+ const perfTrace=join(dir,slug+'.perf.json');
+ const record={slug,type,project,started:now(),status:'starting',session:session??null,output,error:null,
+   diagnosticLog:debugEnabled?logFile:null,perfTrace:debugEnabled?perfTrace:null};
  await save(record);
- const p=spawn(cli,[...flags,'--slug',slug,'--write-output',output,'--wait',...args],{
+ const p=spawn(cli,[...flags,...(debugEnabled?['--perf-trace-path',perfTrace]:[]),'--slug',slug,'--write-output',output,'--wait',...args],{
   cwd:base,env:process.env,stdio:['ignore','pipe','pipe']});
  let recent='';
+ const sink=debugEnabled?createWriteStream(logFile,{flags:'a',mode:0o600}):null;
  for(const s of [p.stdout,p.stderr]){
    s.setEncoding('utf8');
-   s.on('data',chunk=>{recent=(recent+chunk).slice(-7000);process.stdout.write(chunk);});
+   s.on('data',chunk=>{recent=(recent+chunk).slice(-7000);sink?.write(chunk);process.stdout.write(chunk);});
  }
  record.status='running';record.pid=p.pid;await save(record);
  const exitCode=await new Promise(resolve=>p.on('close',resolve));
+ if(sink)await new Promise(resolve=>sink.end(resolve));
  record.finished=now();record.exitCode=exitCode;
  record.status=exitCode===0&&existsSync(output)?'completed':'failed';
  record.error=record.status==='failed'?recent.slice(-900):null;
@@ -105,7 +112,10 @@ async function run(args,type,session){
  console.log('\nORACLE_MVP_STATUS='+record.status+' SESSION='+slug);
  if(record.status!=='completed')process.exitCode=1;
 }
-if(cmd==='doctor'){
+if(cmd==='diagnose'){
+ const child=spawnSync(process.execPath,[join(base,'scripts','diagnose-oracle.mjs'),prompt||'flowdeck-sashai-oracle-live-cdp'],{cwd:base,encoding:'utf8',timeout:15000});
+ process.stdout.write(child.stdout||'');process.stderr.write(child.stderr||'');process.exitCode=child.status??1;
+}else if(cmd==='doctor'){
  const version=assertOracle();
  const cdp=await synchronizeCDP();
  console.log(JSON.stringify({oracle:version,cdp,project,profile:'Helium Profile 4',repoHarness:false},null,2));

@@ -17,7 +17,8 @@
     "sashai:status": "node scripts/sashai-supervisor.mjs status",
     "sashai:adopt": "node scripts/sashai-supervisor.mjs adopt",
     "oracle:doctor": "node scripts/oracle-sashai.mjs doctor",
-    "oracle:pin": "node scripts/prepare-oracle-local.mjs"
+    "oracle:pin": "node scripts/prepare-oracle-local.mjs",
+    "oracle:diagnose": "node scripts/oracle-sashai.mjs diagnose"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

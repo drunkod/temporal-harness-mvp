@@ -34,6 +34,8 @@ node scripts/sashai-supervisor.mjs watch 5
 scripts/open-helium-profile4.sh
 ```
 
+Read-only Oracle browser diagnostics: `node scripts/oracle-sashai.mjs diagnose flowdeck-sashai-oracle-live-cdp`. See [root-cause report](docs/ORACLE-PROMPT-COMMIT-RCA.md). Native Oracle completion capture is still not fixed; do not blindly rerun failed sessions.
+
 See [the canonical Oracle Sashai plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md) and [Sashai user journey](docs/SASHAI-SUPERVISOR-JOURNEY.md). Prior Repo Harness integration in `src/activities.ts` remains isolated in the legacy fixture and is **not** part of the active Sashai supervisor.
 
 ## Live browser dashboard (now implemented)
