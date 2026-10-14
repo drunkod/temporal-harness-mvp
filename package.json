@@ -11,7 +11,9 @@
     "status": "node dist/cli.js status",
     "list": "node dist/cli.js list",
     "verify": "node dist/verify.js",
-    "test": "npm run build && node --test tests/*.test.mjs"
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "dashboard": "node dist/dashboard-server.js",
+    "demo": "npm run build && node dist/dashboard-server.js"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

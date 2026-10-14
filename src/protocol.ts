@@ -21,6 +21,7 @@ export interface Receipt {
   gitCommit: string;
   worktree: string;
   verdict: 'verified' | 'blocked' | 'indeterminate';
+  error?: string;
   jev: string;
   browser: string;
 }
@@ -29,10 +30,21 @@ export interface MvpInput {
   maxTasks: number;
   browserDryRun: boolean;
   jev: boolean;
+  demoPacingMs?: number;
+}
+export interface ProgressEvent {
+  at: string;
+  stage: string;
+  project: string | null;
+  detail: string;
+  kind: 'running' | 'success' | 'warning' | 'error';
 }
 export interface MvpStatus {
   stage: string;
   processed: number;
+  expected: number;
   current: string | null;
   receipts: Receipt[];
+  events: ProgressEvent[];
+  message: string;
 }

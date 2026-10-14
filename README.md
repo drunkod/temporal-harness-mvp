@@ -21,6 +21,17 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 **Important scope:** This is an intentionally narrow proof. The spec compiler is **deterministic**, not an autonomous AI planner. The executor applies an exact file, not a real Codex model invocation. The browser stage generates local **dry-run** sessions; it is not proof of a completed ChatGPT consultation. Temporal is real and persistent, but retry recovery of arbitrary side effects is not yet production-hardened. No real project repositories are modified.
 
+## Live browser dashboard (now implemented)
+
+Open **http://127.0.0.1:4319/** in a **new Helium Profile 4 window** (verified name: `drunkod gpt`), keeping your existing ChatGPT tab untouched:
+
+```bash
+cd ~/Documents/work/temporal-harness-mvp
+scripts/open-helium-profile4.sh
+```
+
+The dashboard is served by `org.drunkod.temporal-harness-mvp-dashboard` and the Worker by `org.drunkod.temporal-harness-mvp-worker` (both user LaunchAgents). It polls Temporal every 700 ms. **Start fresh demo** creates independent Alpha/Beta repos on every finished run, and Recent demonstrations reads history without side effects. Check `docs/DEMO-GUIDE.md` and `docs/ARCHITECTURE-CODEGRAPH.md` for the presentation and Codegraph-derived Mermaid diagram.
+
 ## Quick start on MacBook
 
 ```bash
@@ -67,7 +78,7 @@ Installed `repo-harness` is 0.20.0, but the global `oracle` binary is 0.21.3 whe
 
 ## What remains for product MVP
 
-A model-backed planner that creates independently checkable specs, real Codex typewriter adapter, asynchronous device dispatch through RemoteMCP-Jazz, protected MCP control tools, live browser consult/follow-up with compatible Oracle, safe replay/reconciliation for crashes, and dashboard. The existing 26 RemoteMCP executor tool schemas remain untouched.
+A model-backed planner that creates independently checkable specs, real Codex typewriter adapter, asynchronous device dispatch through RemoteMCP-Jazz, protected MCP control tools, live ChatGPT browser consult/follow-up with compatible Oracle, and safe replay/reconciliation for crashes. **The live browser task-progress dashboard is implemented and verified.** The existing 26 RemoteMCP executor tool schemas remain untouched.
 
 ## Stop and reset
 

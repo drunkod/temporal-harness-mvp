@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Flowdeck — Temporal MVP</title>
+<style>
+  :root{color-scheme:dark;--bg:#080b13;--surface:#0f1522;--surface2:#151e2e;--line:#253044;--text:#edf4ff;--sub:#9eacc3;--accent:#8da5ff;--lime:#70dfac;--amber:#ffca82;--red:#ff8c91;}
+  *{box-sizing:border-box}body{margin:0;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse 100% 45% at 50% -10%,#1a2545 0%,var(--bg) 80%);color:var(--text);min-height:100vh}
+  .shell{max-width:1370px;margin:0 auto;padding:27px 30px 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:29px;border-bottom:1px solid var(--line)}.identity{display:flex;align-items:center;gap:13px}.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:linear-gradient(130deg,#a5b3ff,#495bd0);color:#090f25;font-size:26px;font-weight:800}.brand{font-size:17px;font-weight:750;letter-spacing:-.4px}.tagline{font-size:11px;color:var(--sub);letter-spacing:1.6px;text-transform:uppercase}.right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}.live{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:12px}.dot{width:8px;height:8px;background:var(--lime);border-radius:50%;box-shadow:0 0 0 4px #70dfac1d}.dot.off{background:var(--red);box-shadow:none}.profile{background:#1e2737;border:1px solid #35415a;color:#c1d0e8;padding:7px 10px;border-radius:8px;font-size:11px}
+  .hero{display:flex;justify-content:space-between;gap:22px;align-items:end;margin:38px 0 25px}.eyebrow{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--accent);font-weight:700}.hero h1{font-size:clamp(28px,3.8vw,44px);line-height:1.13;letter-spacing:-1.5px;margin:7px 0 10px}.hero p{color:var(--sub);max-width:690px;margin:0;font-size:13px}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#192438;color:var(--text);padding:12px 17px;border-radius:10px;font-weight:650;font-size:12px;cursor:pointer;white-space:nowrap}.btn.primary{color:#081023;background:linear-gradient(110deg,#a5b4ff,#85a8ff);border:0;box-shadow:0 8px 28px #8398ff2c}.btn:disabled{opacity:.5;cursor:wait}.btn:not(:disabled):hover{filter:brightness(1.13)}.muted{color:var(--sub)}
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 24px}.kpi{border:1px solid var(--line);background:linear-gradient(150deg,#141d2b,#0f1521);border-radius:14px;padding:18px 20px}.kpi .k-label{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--sub)}.kpi .number{font-size:27px;font-weight:750;margin:5px 0 0;letter-spacing:-1px}.kpi .note{font-size:11px;color:var(--sub)}
+  .panel{background:linear-gradient(160deg,#121a29,#0d1421);border:1px solid var(--line);border-radius:16px;overflow:hidden}.main-grid{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(330px,1fr);gap:17px;align-items:start}.panel-head{padding:20px 22px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px}.panel-head h2{font-size:15px;margin:0;letter-spacing:-.2px}.panel-head .small{font-size:11px;color:var(--sub)}.separator{height:1px;background:var(--line);margin:0 22px}
+  .workflow{padding:12px 22px 21px}.wf-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.state{font-size:11px;text-transform:uppercase;font-weight:750;letter-spacing:.8px;color:var(--accent)}.state.ok{color:var(--lime)}.state.warn{color:var(--amber)}.state.fail{color:var(--red)}.wf-id{font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#a5b7d4;overflow-wrap:anywhere}.bar{height:8px;border-radius:10px;background:#263246;overflow:hidden;margin:17px 0 8px}.fill{height:100%;width:0;background:linear-gradient(90deg,#6e82e9,#80e4ad);border-radius:10px;transition:width .5s}.progress-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--sub)}.current{padding:13px 15px;margin-top:15px;border-radius:11px;background:#1c2640;border:1px solid #32456c;display:flex;align-items:center;gap:10px}.pulse{width:9px;height:9px;border-radius:50%;background:#a6b2ff;box-shadow:0 0 0 4px #8297fa25}.current p{margin:0;font-size:12px;color:#c9d9f7}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:2px 22px 22px}.project{border:1px solid #2b384d;border-radius:12px;background:#111b2c;padding:17px;min-height:213px}.project-top{display:flex;gap:10px;align-items:center;justify-content:space-between}.project-title{font-size:14px;font-weight:750}.icon{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#26314a;color:#b6c5ff}.pill{display:inline-block;font-size:10px;border-radius:5px;padding:4px 7px;background:#2b354d;color:#b3c1dd;font-weight:700;text-transform:uppercase;letter-spacing:.5px}.pill.ok{color:#83e7b6;background:#184333}.pill.wait{color:#ffcf82;background:#4a3625}.taskdesc{color:var(--sub);font-size:12px;margin:13px 0 16px;min-height:34px}.details{display:grid;gap:9px}.details .detail{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;border-top:1px solid #263348;padding-top:9px}.detail .value{color:#d0ddf4;max-width:68%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rail{min-height:480px}.timeline{padding:10px 23px 20px;max-height:600px;overflow-y:auto}.event{display:grid;grid-template-columns:9px 1fr;gap:14px;padding-bottom:19px;position:relative}.event:before{content:"";position:absolute;top:17px;left:3.5px;bottom:0;width:1px;background:#303b55}.event:last-child:before{display:none}.ev-dot{width:9px;height:9px;background:var(--accent);border-radius:50%;margin-top:5px}.ev-dot.success{background:var(--lime)}.ev-dot.warning{background:var(--amber)}.ev-dot.error{background:var(--red)}.ev-time{font-size:10px;color:var(--sub)}.ev-title{font-size:12px;font-weight:650;margin:1px 0 3px}.ev-detail{font-size:11px;color:var(--sub);overflow-wrap:anywhere}.empty{padding:35px 22px;text-align:center;color:var(--sub);font-size:13px}
+  .history{margin-top:18px}.hist-items{display:grid;gap:6px;padding:9px 18px 18px;max-height:260px;overflow:auto}.hist{font:11px ui-monospace,monospace;text-align:left;background:#141e30;border:1px solid transparent;border-radius:7px;color:#bbcae0;padding:9px 11px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}.hist:hover,.hist.selected{border-color:#6e87d5;background:#1a2945}.hint{font-size:11px;color:var(--sub);margin-top:16px}.notice{color:#b8c4d8;border-left:2px solid #7f97ff;background:#20294480;padding:12px 16px;font-size:12px;margin-top:20px;border-radius:0 8px 8px 0}
+  @media(max-width:900px){.main-grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:580px){.shell{padding:18px 13px 50px}.top{align-items:start;flex-direction:column}.cards{grid-template-columns:1fr}.kpis{gap:8px}.panel-head{padding:17px 15px}.separator{margin:0 15px}.workflow,.cards{padding-left:15px;padding-right:15px}.kpi{padding:14px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top"><div class="identity"><div class="logo">↗</div><div><div class="brand">Flowdeck <span style="color:#8798c7;font-weight:450">/ Temporal MVP</span></div><div class="tagline">Project-roaming task operations</div></div></div><div class="right"><div class="live"><span id="connectionDot" class="dot"></span><span id="connectionLabel">Connecting to Temporal</span></div><span class="profile">Helium · Profile 4 · dedicated window</span></div></header>
+  <section class="hero"><div><div class="eyebrow">Live orchestration overview</div><h1>Watch work move<br/>from task to verified.</h1><p>Real Temporal workflows, Jev routing, Repo Harness browser dry-run evidence, and independent Git verification. Each demonstration starts with two fresh, disposable repositories.</p></div><div class="actions"><button id="start" class="btn primary">▶ Start fresh demo</button><button id="refresh" class="btn">↻ Refresh status</button></div></section>
+  <section class="kpis">
+    <div class="kpi"><div class="k-label">Workflow state</div><div id="overall" class="number">Idle</div><div class="note">Temporal is the source of truth</div></div>
+    <div class="kpi"><div class="k-label">Verified tasks</div><div id="verified" class="number">0 / 2</div><div class="note">Checksums + committed evidence</div></div>
+    <div class="kpi"><div class="k-label">Browser records</div><div id="browserCount" class="number">0</div><div class="note">Repo Harness dry-run sessions</div></div>
+    <div class="kpi"><div class="k-label">Jev decisions</div><div id="jevCount" class="number">0</div><div class="note">OpenCode Zen (advisory only)</div></div>
+  </section>
+  <main class="main-grid">
+    <div>
+      <section class="panel"><div class="panel-head"><h2>Execution pipeline</h2><span id="stage" class="state">READY</span></div><div class="separator"></div>
+        <div class="workflow"><div class="wf-row"><span id="wfId" class="wf-id">No workflow selected</span><span id="percentage" class="muted">0%</span></div><div class="bar"><div class="fill" id="fill"></div></div><div class="progress-foot"><span>0 · Discovery</span><span>1 · Alpha</span><span>2 · Beta</span></div><div class="current"><div class="pulse"></div><p id="message">Click Start fresh demo to launch a new two-repository Temporal workflow.</p></div></div>
+        <div class="panel-head"><h2>Project task board</h2><span class="small">Two isolated Git repositories</span></div><div class="separator"></div><div class="cards" id="projects"></div>
+      </section>
+      <div class="notice"><strong>Evidence levels:</strong> “Verified” means actual Git file/hash checks. “Browser record” means a saved Repo Harness dry-run session, not a ChatGPT website response. The existing authenticated ChatGPT tab is not automated or modified.</div>
+    </div>
+    <aside>
+      <section class="panel rail"><div class="panel-head"><h2>Activity timeline</h2><span id="lastUpdated" class="small">Waiting for updates</span></div><div class="separator"></div><div class="timeline" id="timeline"><div class="empty">Start a demo to watch the activity stream.</div></div></section>
+      <section class="panel history"><div class="panel-head"><h2>Recent demonstrations</h2><span class="small">Read-only history</span></div><div class="separator"></div><div class="hist-items" id="history"><div class="empty">No local demonstrations yet.</div></div></section>
+      <div class="hint">Status refreshes every 700 milliseconds. Refreshing the page never creates a new workflow.</div>
+    </aside>
+  </main>
+</div>
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const stages = {starting:'Starting',discovering:'Scanning tasks',specifying:'Writing spec',jev:'Jev routing',browser:'Browser record',executing:'Git execution',verified:'Verified',completed:'Completed',blocked:'Blocked',no_tasks:'No tasks'};
+ let selected = null, lastSnapshot = null, pending = false, historyCache = [];
+ const get = async u => {const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error(await r.text());return r.json()};
+ function card(name,status){
+   const receipt=status?.receipts?.find(x=>x.project===name);
+   const events=(status?.events??[]).filter(e=>e.project===name);
+   const active=status?.current===name && status?.temporal==='RUNNING';
+   const completed=receipt?.verdict==='verified';
+   const failed=receipt && !completed;
+   const phase=completed?'Verified':failed?'Blocked':active?stages[status.stage]??'Running':'Pending';
+   const tone=completed?'ok':failed?'wait':active?'wait':'';
+   const currentEvent=events.at(-1);
+   const browser=receipt?.browser ?? events.filter(e=>e.stage==='browser'&&e.detail.startsWith('dry-run')).at(-1)?.detail;
+   const jev=receipt?.jev ?? events.filter(e=>e.stage==='jev'&&e.detail.startsWith('OpenCode')).at(-1)?.detail;
+   return '<article class="project"><div class="project-top"><div style="display:flex;align-items:center;gap:10px"><div class="icon">'+(name==='alpha'?'A':'B')+'</div><span class="project-title">Project '+esc(name[0].toUpperCase()+name.slice(1))+'</span></div><span class="pill '+tone+'">'+esc(phase)+'</span></div><div class="taskdesc">'+esc(currentEvent?.detail??'Waiting to discover and execute task')+'</div><div class="details"><div class="detail"><span class="muted">Specification</span><span class="value">'+(receipt?'SHA-256 saved':events.some(e=>e.stage==='specifying')?'Prepared':'Pending')+'</span></div><div class="detail"><span class="muted">Jev</span><span class="value">'+esc(jev?.startsWith('OpenCode Zen Jev')?'Classified':jev?'Skipped / unavailable':'Pending')+'</span></div><div class="detail"><span class="muted">Browser</span><span class="value">'+esc(browser?.startsWith('dry-run session saved:')?'Dry-run saved':browser?'Unavailable / disabled':'Pending')+'</span></div><div class="detail"><span class="muted">Git verification</span><span class="value">'+esc(receipt?.verdict??'Pending')+'</span></div></div></article>';
+ }
+ function render(s){
+   lastSnapshot=s;
+   const total=s.expected||2, completed=(s.receipts||[]).filter(r=>r.verdict==='verified').length;
+   const browserCount=(s.events||[]).filter(e=>e.stage==='browser'&&e.kind==='success').length;
+   const jevCount=(s.events||[]).filter(e=>e.stage==='jev'&&e.detail.startsWith('OpenCode Zen Jev')).length;
+   $('overall').textContent=s.temporal==='RUNNING'?'Running':s.temporal==='COMPLETED'?'Complete':s.temporal??'Idle';
+   $('verified').textContent=completed+' / '+total;
+   $('browserCount').textContent=browserCount;
+   $('jevCount').textContent=jevCount;
+   $('stage').textContent=stages[s.stage]??s.stage;
+   $('stage').className='state '+(s.stage==='completed'?'ok':s.stage==='blocked'?'fail':'');
+   $('wfId').textContent=s.id||'No workflow selected';
+   const progress=s.stage==='completed'?100:Math.min(98,(completed/total)*100+((s.temporal==='RUNNING')?10:0));
+   $('fill').style.width=progress+'%';$('percentage').textContent=Math.round(progress)+'%';
+   $('message').textContent=s.message||s.stage;
+   $('projects').innerHTML=['alpha','beta'].map(n=>card(n,s)).join('');
+   const timeline=(s.events??[]).slice().reverse().slice(0,24);
+   $('timeline').innerHTML=timeline.length?timeline.map(e=>'<div class="event"><div class="ev-dot '+esc(e.kind)+'"></div><div><div class="ev-time">'+esc(new Date(e.at).toLocaleTimeString())+' · '+esc(e.project??'Workflow')+'</div><div class="ev-title">'+esc(stages[e.stage]??e.stage)+'</div><div class="ev-detail">'+esc(e.detail)+'</div></div></div>').join(''):'<div class="empty">No events yet.</div>';
+   $('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
+   $('start').disabled=s.temporal==='RUNNING'||pending;
+ }
+ function clear(){
+   $('projects').innerHTML=['alpha','beta'].map(n=>card(n,null)).join('');
+   $('start').disabled=false;
+ }
+ async function refresh(){
+   try{
+     const health=await get('/api/health');
+     $('connectionDot').className='dot';$('connectionLabel').textContent='Temporal connected';
+     if(!selected){
+       const items=await get('/api/runs');historyCache=items.runs||[];
+       if(historyCache.length) selected=historyCache[0].id;
+       renderHistory();
+     }
+     if(selected){ const state=await get('/api/status?id='+encodeURIComponent(selected));render(state); }
+   }catch(e){
+     $('connectionDot').className='dot off';$('connectionLabel').textContent='Connection interrupted';
+     $('message').textContent='Cannot refresh status: '+(e?.message??'unknown');
+   }
+ }
+ function renderHistory(){
+   $('history').innerHTML=historyCache.length?historyCache.map(r=>'<button class="hist '+(r.id===selected?'selected':'')+'" data-id="'+esc(r.id)+'"><span>'+esc(r.id)+'</span><span>'+esc(new Date(r.createdAt).toLocaleTimeString())+'</span></button>').join(''):'<div class="empty">No demonstrations yet.</div>';
+   $('history').querySelectorAll('button[data-id]').forEach(b=>b.addEventListener('click',()=>{selected=b.dataset.id;renderHistory();refresh();}));
+ }
+ $('start').addEventListener('click',async()=>{
+   if(pending)return;
+   pending=true;$('start').disabled=true;$('message').textContent='Creating fresh, isolated task repositories...';
+   try{
+     const r=await fetch('/api/start',{method:'POST'});
+     if(!r.ok)throw Error(await r.text());
+     const created=await r.json();selected=created.id;
+     const items=await get('/api/runs');historyCache=items.runs||[];renderHistory();
+     await refresh();
+   }catch(e){$('message').textContent='Start failed: '+(e?.message??'unknown');}
+   finally{pending=false;if(lastSnapshot?.temporal!=='RUNNING')$('start').disabled=false;}
+ });
+ $('refresh').addEventListener('click',refresh);
+ clear();refresh();setInterval(refresh,700);
+})();
+</script>
+</body></html>

@@ -159,8 +159,10 @@ export async function executeVerifyPromote(
     await writeFile(receiptPath, JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx' });
     return receipt;
   } catch (e) {
-    const receipt: Receipt = { ...basic, worktree, gitCommit: '', verdict: 'indeterminate' };
-    await writeFile(receiptPath + '.error', String(e).slice(0, 2000));
+    const failure = e instanceof Error ? e.message : String(e);
+    const receipt: Receipt = { ...basic, worktree, gitCommit: '', verdict: 'indeterminate',
+      error: failure.slice(0, 300) };
+    await writeFile(receiptPath + '.error', failure.slice(0, 2000));
     return receipt;
   } finally {
     if (existsSync(worktree)) {
