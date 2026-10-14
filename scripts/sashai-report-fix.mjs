@@ -5,6 +5,7 @@ import {existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {composerPayloadFor,snapshotSashaiTree} from '../dist/sashai-dispatch-evidence.js';
 const base=resolve(import.meta.dirname,'..');
 const dir=join(base,'.state','report-review-dispatch');
 const attemptFile=join(dir,'attempt.json');
@@ -45,23 +46,27 @@ if(action==='prepare'){
  const selected=await run(page,`(() => {const c=[...document.querySelectorAll('button')].filter(b=>b.getClientRects().length&&(b.innerText||'').trim().startsWith('Remote Desktop Commander'));if(c.length!==1)return false;c[0].click();return true})()`);
  if(!selected)throw Error('Connector not selectable yet; no fix staged');
  await sleep(300);
- const staged=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(e?.innerText?.trim()!=='Remote Desktop Commander')return false;e.focus();document.execCommand('insertText',false,${JSON.stringify(prompt)});return e.innerText.startsWith('Remote Desktop Commander')&&e.innerText.split(${JSON.stringify(marker)}).length===2&&!!document.querySelector('button[aria-label="Send"]:not([disabled])')})()`);
+ const staged=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(e?.innerText?.trim()!=='Remote Desktop Commander')return false;e.focus();document.execCommand('insertText',false,${JSON.stringify(prompt)});return e.innerText.normalize('NFC').replace(/\\s+/gu,' ').trim()===${JSON.stringify(composerPayloadFor(prompt))}&&!!document.querySelector('button[aria-label="Send"]:not([disabled])')})()`);
  if(!staged)throw Error('Fix prompt not safely staged');
  await writeFile(fixFile,JSON.stringify({chatUrl:source.conversationUrl,tabId:page.id,
    reportBeforeSha256:sha(reportBody),sourceHead:gitHead,marker,promptSha256:sha(prompt),
+   composerSha256:sha(composerPayloadFor(prompt)),preflightTreeEvidence:await snapshotSashaiTree(repo),
    state:'prepared',createdAt:new Date().toISOString()},null,2)+'\n',{flag:'wx',mode:0o600});
  console.log(JSON.stringify({status:'fix_prepared_no_send',chat:source.conversationUrl,marker}));
 }else if(action==='send'){
  if(existsSync(guard))throw Error('FIX ALREADY ATTEMPTED; NO RESEND');
  const fix=JSON.parse(await readFile(fixFile,'utf8'));
  if(fix.state!=='prepared'||fix.tabId!==source.tabId||fix.chatUrl!==source.conversationUrl||
-   fix.sourceHead!==gitHead||fix.reportBeforeSha256!==sha(reportBody)||fix.promptSha256!==sha(prompt))
+   fix.sourceHead!==gitHead||fix.reportBeforeSha256!==sha(reportBody)||fix.promptSha256!==sha(prompt)||
+   fix.composerSha256!==sha(composerPayloadFor(prompt))||
+   fix.preflightTreeEvidence?.version!==2||
+   (await snapshotSashaiTree(repo)).fingerprintSha256!==fix.preflightTreeEvidence.fingerprintSha256)
   throw Error('Fix source changed; refuse send');
  if(!page)throw Error('Original chat changed; refuse send');
- const ready=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');return location.pathname===${JSON.stringify(new URL(source.conversationUrl).pathname)}&&e?.innerText?.startsWith('Remote Desktop Commander')&&e.innerText.split(${JSON.stringify(marker)}).length===2&&!!document.querySelector('button[aria-label="Send"]:not([disabled])')})()`);
+ const ready=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');return location.pathname===${JSON.stringify(new URL(source.conversationUrl).pathname)}&&(e?.innerText||'').normalize('NFC').replace(/\\s+/gu,' ').trim()===${JSON.stringify(composerPayloadFor(prompt))}&&!!document.querySelector('button[aria-label="Send"]:not([disabled])')})()`);
  if(!ready)throw Error('Missing connector or marker; refuse send');
  await writeFile(guard,JSON.stringify({at:new Date().toISOString(),chat:source.conversationUrl,marker},null,2)+'\n',{flag:'wx',mode:0o600});
- const click=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(location.pathname!==${JSON.stringify(new URL(source.conversationUrl).pathname)}||!e?.innerText?.startsWith('Remote Desktop Commander')||!e.innerText.includes(${JSON.stringify(marker)}))return false;const b=document.querySelector('button[aria-label="Send"]:not([disabled])');if(!b)return false;b.click();return true})()`);
+ const click=await run(page,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(location.pathname!==${JSON.stringify(new URL(source.conversationUrl).pathname)}||(e?.innerText||'').normalize('NFC').replace(/\\s+/gu,' ').trim()!==${JSON.stringify(composerPayloadFor(prompt))})return false;const b=document.querySelector('button[aria-label="Send"]:not([disabled])');if(!b)return false;b.click();return true})()`);
  console.log(JSON.stringify({status:click?'fix_clicked_once':'fix_indeterminate_never_retry',marker}));
 }else if(action==='status')console.log(JSON.stringify({fixPrepared:existsSync(fixFile),fixSent:existsSync(guard),
   reportBytes:(await stat(report)).size,reportHash:sha(reportBody),hasHtmlBreaks:reportBody.includes('<br/>'),chat:source.conversationUrl},null,2));

@@ -3,6 +3,18 @@
 Date: 2026-10-14
 Owner goal: Leave a manually started ChatGPT project task running; the supervisor watches the same conversation without duplicate prompts, understands its status, independently verifies the task, continues unfinished work in that chat, and creates a new **project-scoped Sashai chat with Desktop Commander** for the next approved item. **Repo Harness is excluded from this active chain.**
 
+## Evidence hardening and Temporal restart proof — 2026-10-15
+
+The report-only task was accepted earlier, but a later independent review identified three gaps: the sender checked only a marker instead of the whole composer, Git evidence omitted staged/untracked content, and Flowdeck did not revalidate acceptance against the active task contract.
+
+These gaps are now addressed for **new** report attempts: both first-turn and corrective senders compare the entire normalized connector-selected composer at staging, preflight and immediately before the click. New attempts record a versioned SHA-256 fingerprint of Git HEAD, status, staged and unstaged binary diffs, plus the actual contents of all Git-listed dirty/untracked non-ignored files. Flowdeck checks acceptance→attempt→current-contract SHA-256 and the report artifact hash before showing current verification.
+
+**Historical limitation:** the original accepted report predated the content fingerprint. Its acceptance is still valid for its original report-only contract, but its baseline was only Git status and unstaged tracked diff. That limitation is explicitly exposed as `legacy_git_status_and_unstaged_diff_only`; do not claim retroactive full-content coverage. Structural checks are not exhaustive architectural or Mermaid-renderer validation.
+
+A dedicated Temporal workflow, `sashaiReportLifecycle`, on queue `oracle-sashai-report-review`, adopted the sealed send/correction claims without invoking the browser. Workflow `sashai-report-review-8f64480c627c2605c58f` survived dedicated worker shutdown/restart in `waiting_for_durable_resume`, then completed after a signal at `verified_approval_boundary` with `dispatchPermitted=false` and `nextTaskPermitted=false`. This **proves restart-safe observation and re-verification**, not Temporal-owned browser dispatch or automatic corrective sends.
+
+Technical evidence: [SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md](SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md). Next is a separately approved disposable task to demonstrate Temporal-managed connector-aware submission, failed-acceptance correction and independent completion. General Sashai implementation remains paused without an approved active plan.
+
 ## First supervised report task verified — 2026-10-15
 
 **Report-only task accepted:** The owner-approved Sashai architecture review was dispatched exactly once in Helium Profile 4 to a fresh `dr/sashai` ChatGPT chat with **Remote Desktop Commander selected in the composer**. This was a source-backed report task, not implementation of the Sashai roadmap, and it did **not** activate an execution plan.

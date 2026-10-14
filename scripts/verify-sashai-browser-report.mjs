@@ -9,6 +9,7 @@ import {existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {snapshotSashaiTree} from '../dist/sashai-dispatch-evidence.js';
 
 const root=resolve(import.meta.dirname,'..');
 const repo='/Users/test/Documents/work/sashai';
@@ -64,8 +65,14 @@ const head=git('rev-parse','HEAD').trim();
 const statusFingerprint=sha(git('status','--porcelain=v1','-z'));
 const diffFingerprint=sha(git('diff','--binary'));
 const revisionMatches=head===attempt.head;
-const baselineUnchanged=statusFingerprint===attempt.preflightStatusSha256 &&
+const baselineUnchangedLegacy=statusFingerprint===attempt.preflightStatusSha256 &&
  diffFingerprint===attempt.preflightDiffSha256;
+const newEvidence=attempt.preflightTreeEvidence?.version===2
+ ? await snapshotSashaiTree(repo) : null;
+const baselineUnchanged=newEvidence
+ ? newEvidence.fingerprintSha256===attempt.preflightTreeEvidence.fingerprintSha256
+ : baselineUnchangedLegacy;
+const baselineEvidenceScope=newEvidence?'full_dirty_content_and_index_v2':'legacy_git_status_and_unstaged_diff_only';
 const info=await stat(reportFile).catch(()=>null);
 const report=info&&info.isFile()&&info.size<524288?await readFile(reportFile,'utf8'):null;
 const commits=git('log','-12','--format=%H').trim().split('\n');
@@ -89,6 +96,7 @@ const result={
  taskId:attempt.taskId,chatUrl:attempt.conversationUrl??null,
  taskContractSha256:attempt.taskContractSha256,submissionAttempted:true,
  sourceHead:head,baselineHead:attempt.head,revisionMatches,baselineUnchanged,
+ baselineEvidenceScope,previousEvidenceWasPartial:!newEvidence,
  connectorEvidenceValid,sourceFilesVerified,bindingEvidence:attempt.bindingEvidence??'none',
  reportPath:reportFile,reportBytes:info?.size||0,reportSha256:report?sha(report):null,
  acceptanceStatus:acceptance?'verified_report':'incomplete_or_unverified',
@@ -97,7 +105,7 @@ const result={
   ...(!connectorEvidenceValid?['connector_tool_history_evidence_missing']:[]),
   ...(!sourceFilesVerified?['expected_repository_sources_missing']:[])],
  verifiedAt:new Date().toISOString(),
- limitations:'Report-only verification combines Git and content checks with sanitized Remote Desktop Commander tool history. ChatGPT Work layout may hide original prompt, so same-tab/revision binding is weaker than exact prompt-marker evidence. Does not establish autonomous implementation acceptance.'
+ limitations:'The original October 15 report was bound only by Git status and unstaged tracked diff, not staged/untracked contents. New dispatches require index+dirty-file content SHA-256. Structural report checks do not prove all architectural assertions. ChatGPT Work may hide original prompt, so same-tab binding is weaker than exact prompt identity. No implementation acceptance.'
 };
 if(!pending)await writeFile(evidenceFile,JSON.stringify(result,null,2)+'\n',{mode:0o600});
 console.log(JSON.stringify(result,null,2));

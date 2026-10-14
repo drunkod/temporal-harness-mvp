@@ -21,6 +21,12 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 **Important scope:** This is an intentionally narrow proof. The spec compiler is **deterministic**, not an autonomous AI planner. The executor applies an exact file, not a real Codex model invocation. The browser stage generates local **dry-run** sessions; it is not proof of a completed ChatGPT consultation. Temporal is real and persistent, but retry recovery of arbitrary side effects is not yet production-hardened. No real project repositories are modified.
 
+## Report evidence hardening and Temporal restart proof (2026-10-15)
+
+The approved browser report remains independently accepted, but the supervisor now distinguishes **historical limited evidence** from stronger safeguards required for all new attempts. Both connector-preserving report senders compare the **entire normalized composer payload** before clicking Send, and new attempts bind staged diffs plus hashes of modified/untracked file contents. Flowdeck requires the current contract, persisted attempt, acceptance and report hashes to match before showing current report verification.
+
+The new `sashaiReportLifecycle` Temporal workflow safely adopted the prior report's sealed submission and correction records, survived a **dedicated worker restart**, then completed on a durable resume signal at `verified_approval_boundary`. It performs read-only reconciliation and verification; **it cannot send prompts or dispatch new tasks**. Check the recorded run with `node scripts/sashai-report-temporal.mjs status` and see [the evidence and limitations](docs/SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md). The report's original Git evidence was limited to status/unstaged diff; stronger v2 snapshots cannot be applied retroactively. No Sashai product implementation is authorized.
+
 ## Sashai ChatGPT Supervisor — current primary MVP (Oracle-only)
 
 The active CLI is the isolated, unmodified Oracle **0.21.5** (`npm run oracle:pin`); the global Homebrew Oracle 0.21.3 is untouched. Live new-chat and same-chat followup tests completed with accurate saved responses. A read-only background watcher (`scripts/manage-sashai-watcher.sh status|start|stop`) may adopt exactly one active Sashai chat; it never dispatches work.

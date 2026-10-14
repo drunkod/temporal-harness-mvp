@@ -9,6 +9,7 @@ import { mkdir, readFile, writeFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { composerPayloadFor, normalizeComposerText, snapshotSashaiTree } from '../dist/sashai-dispatch-evidence.js';
 
 const base=resolve(import.meta.dirname,'..');
 const state=join(base,'.state','report-review-dispatch');
@@ -38,7 +39,7 @@ async function evalTab(tab,expression){
   ws.addEventListener('error',()=>{clearTimeout(tm);no(Error('CDP error'))});
  });
 }
-async function getTask(){
+async function getTask(taskMarker=marker){
  const task=await readFile(taskFile,'utf8');
  if(!task.includes('Scope status: APPROVED, report-only.') ||
     !task.includes('Execution status: NOT DISPATCHED through the browser supervisor.') ||
@@ -53,7 +54,7 @@ async function getTask(){
  if(existsSync(output))throw Error('Report output already exists; refuse overwriting');
  const promptMatch=task.match(/## Initial Prompt for the Verified Sender\s+>\s*([^\n]+)/);
  if(!promptMatch)throw Error('Prepared prompt not present in contract');
- const prompt=promptMatch[1].trim()+' Task marker: '+marker+'. Be precise and perform only read-only Git/Codegraph/file inspection in Sashai. You may create ONLY the report at the explicitly approved MVP documentation output. If a plugin is unavailable, stop and report the blocker.';
+ const prompt=promptMatch[1].trim()+' Task marker: '+taskMarker+'. Be precise and perform only read-only Git/Codegraph/file inspection in Sashai. You may create ONLY the report at the explicitly approved MVP documentation output. If a plugin is unavailable, stop and report the blocker.';
  return {task,expected,actual,prompt};
 }
 const status=async()=>{
@@ -78,10 +79,11 @@ if(action==='prepare'){
  const selected=await evalTab(tab,`(() => {const b=[...document.querySelectorAll('button')].filter(b=>b.getClientRects().length&&(b.innerText||'').trim().startsWith('Remote Desktop Commander'));if(b.length!==1)return false;b[0].click();return true})()`);
  if(!selected)throw Error('Remote Desktop Commander plugin is not uniquely available');
  await pause(350);
- const composed=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(e?.getAttribute('aria-label')!=='New chat in dr/sashai'||e.innerText.trim()!=='Remote Desktop Commander')return {ok:false};e.focus();document.execCommand('insertText',false,${JSON.stringify(' '+prompt)});const v=e.innerText||'';return {ok:v.startsWith('Remote Desktop Commander')&&v.includes(${JSON.stringify(marker)})&&v.split(${JSON.stringify(marker)}).length===2,chars:v.length,sendEnabled:!!document.querySelector('button[aria-label="Send"]:not([disabled])')}})()`);
+ const composed=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(e?.getAttribute('aria-label')!=='New chat in dr/sashai'||e.innerText.trim()!=='Remote Desktop Commander')return {ok:false};e.focus();document.execCommand('insertText',false,${JSON.stringify(' '+prompt)});const v=e.innerText||'';const normalized=v.normalize('NFC').replace(/\\s+/gu,' ').trim();return {ok:normalized===${JSON.stringify(composerPayloadFor(prompt))},chars:v.length,sendEnabled:!!document.querySelector('button[aria-label="Send"]:not([disabled])')}})()`);
  if(!composed.ok||!composed.sendEnabled)throw Error('Composer mismatch; do not dispatch');
  const attempt={taskId:'sashai-architecture-report-2026-10-15',approval:'report-only',
-  taskContractSha256:sha(task),promptSha256:sha(prompt),marker,
+  taskContractSha256:sha(task),promptSha256:sha(prompt),composerSha256:sha(composerPayloadFor(prompt)),marker,
+  preflightTreeEvidence:await snapshotSashaiTree(repo),
   head:expected,preflightStatusSha256:sha(git('status','--porcelain=v1','-z')),
   preflightDiffSha256:sha(git('diff','--binary')),destination:output,
   project,tabId:tab.id,createdAt:new Date().toISOString(),status:'prepared',
@@ -93,18 +95,21 @@ if(action==='prepare'){
  if(existsSync(sendGuard))throw Error('SEND ALREADY ATTEMPTED, NEVER RETRY');
  const a=JSON.parse(await readFile(recordFile,'utf8'));
  if(a.status!=='prepared'||a.approval!=='report-only'||a.project!==project)throw Error('Invalid attempt record');
- const {task,actual,prompt}=await getTask();
+ const {task,actual,prompt}=await getTask(a.marker);
  if(actual!==a.head||sha(task)!==a.taskContractSha256||sha(prompt)!==a.promptSha256||
+   a.composerSha256!==sha(composerPayloadFor(prompt))||
+   a.preflightTreeEvidence?.version!==2||
+   (await snapshotSashaiTree(repo)).fingerprintSha256!==a.preflightTreeEvidence.fingerprintSha256||
    sha(git('status','--porcelain=v1','-z'))!==a.preflightStatusSha256||
    sha(git('diff','--binary'))!==a.preflightDiffSha256)throw Error('Source/contract changed since prepare');
  const tab=(await pages()).find(t=>t.id===a.tabId&&t.url?.split('?')[0]===project&&t.webSocketDebuggerUrl);
  if(!tab)throw Error('Staged project tab is no longer clean');
- const ready=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');const text=e?.innerText||'';return {project:location.pathname===${JSON.stringify(projectPath)},connector:text.startsWith('Remote Desktop Commander'),markerOnce:text.split(${JSON.stringify(marker)}).length===2,send:!!document.querySelector('button[aria-label="Send"]:not([disabled])')}})()`);
- if(!ready.project||!ready.connector||!ready.markerOnce||!ready.send)throw Error('Send preflight failed');
+ const ready=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');const text=(e?.innerText||'').normalize('NFC').replace(/\\s+/gu,' ').trim();return {project:location.pathname===${JSON.stringify(projectPath)},exactPayload:text===${JSON.stringify(composerPayloadFor(prompt))},send:!!document.querySelector('button[aria-label="Send"]:not([disabled])')}})()`);
+ if(!ready.project||!ready.exactPayload||!ready.send)throw Error('Send preflight failed: full staged prompt differs from contract');
  // Persist BEFORE clicking. Any timeout after this point is indeterminate, never retry.
  await writeFile(sendGuard,JSON.stringify({at:new Date().toISOString(),tabId:a.tabId,
    marker:a.marker,promptSha256:a.promptSha256},null,2)+'\n',{flag:'wx',mode:0o600});
- const clicked=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if(!e?.innerText?.startsWith('Remote Desktop Commander')||!e.innerText.includes(${JSON.stringify(marker)})||location.pathname!==${JSON.stringify(projectPath)})return false;const b=document.querySelector('button[aria-label="Send"]:not([disabled])');if(!b)return false;b.click();return true})()`);
+ const clicked=await evalTab(tab,`(() => {const e=document.querySelector('[contenteditable="true"][role="textbox"]');if((e?.innerText||'').normalize('NFC').replace(/\\s+/gu,' ').trim()!==${JSON.stringify(composerPayloadFor(prompt))}||location.pathname!==${JSON.stringify(projectPath)})return false;const b=document.querySelector('button[aria-label="Send"]:not([disabled])');if(!b)return false;b.click();return true})()`);
  console.log(JSON.stringify({status:clicked?'clicked_send_once':'indeterminate_no_retry',taskId:a.taskId,marker:a.marker},null,2));
 }else if(action==='bind'){
  if(!existsSync(sendGuard))throw Error('Cannot bind chat before send claim');

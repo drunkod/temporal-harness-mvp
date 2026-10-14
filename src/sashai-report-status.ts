@@ -12,17 +12,28 @@ async function readJson(file: string): Promise<Record<string, unknown> | null> {
  try {const body=await readFile(file,'utf8');return JSON.parse(body) as Record<string,unknown>;}
  catch{return null;}
 }
+export function contractBindingMatches(attempt:Record<string,unknown>,
+ acceptance:Record<string,unknown>|null,contract:Buffer|null):boolean {
+ const current=contract?createHash('sha256').update(contract).digest('hex'):null;
+ return Boolean(typeof attempt.taskContractSha256==='string' &&
+   attempt.taskContractSha256===acceptance?.taskContractSha256 &&
+   attempt.taskContractSha256===current);
+}
 export async function readReportReviewStatus(){
- const [attempt,acceptance]=await Promise.all([
+ const [attempt,acceptance,contract]=await Promise.all([
   readJson(join(state,'attempt.json')),
   readJson(join(state,'acceptance.json')),
+  readFile(join(base,'docs','SASHAI-ARCHITECTURE-REVIEW-TASK.md')).catch(()=>null),
  ]);
  if(!attempt||attempt.taskId!==expectedTask||attempt.approval!=='report-only')return null;
  const url=typeof attempt.conversationUrl==='string'&&
    attempt.conversationUrl.startsWith(expectedChatPrefix)?attempt.conversationUrl:null;
+ const contractBindingValid=contractBindingMatches(attempt,acceptance,contract);
+ const historicalAcceptance=acceptance?.completed===true?'verified_report':'incomplete_or_unverified';
+ const evidenceScope=attempt.preflightTreeEvidence?'full_dirty_content_and_index_v2':'legacy_git_status_and_unstaged_diff_only';
  let verified=false;
  let size=0;
- if(acceptance?.completed===true&&acceptance?.taskId===expectedTask&&
+ if(contractBindingValid&&acceptance?.completed===true&&acceptance?.taskId===expectedTask&&
     acceptance?.chatUrl===url&&acceptance?.reportPath===browserReportPath&&
     acceptance?.connectorEvidenceValid===true&&acceptance?.sourceFilesVerified===true&&
     typeof acceptance.reportSha256==='string'){
@@ -37,5 +48,6 @@ export async function readReportReviewStatus(){
    acceptance?'verification_stale_or_incomplete':'submitted_unverified',
    conversationUrl:url,reportReady:verified,reportUrl:verified?'/api/sashai/report':null,
    reportBytes:size,verifiedAt:verified?acceptance?.verifiedAt??null:null,
-   separateFromProductTask:true};
+   historicalAcceptance,contractBindingValid,evidenceScope,
+   currentBindingValid:verified,separateFromProductTask:true};
 }

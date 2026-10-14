@@ -24,7 +24,8 @@
     "sashai:supervise": "node scripts/sashai-supervisor.mjs supervise forever",
     "sashai:watcher-status": "bash scripts/manage-sashai-watcher.sh status",
     "sashai:report:status": "node scripts/sashai-report-dispatch.mjs status",
-    "sashai:report:verify": "node scripts/verify-sashai-browser-report.mjs --preview"
+    "sashai:report:verify": "node scripts/verify-sashai-browser-report.mjs --preview",
+    "sashai:temporal:status": "node scripts/sashai-report-temporal.mjs status"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",
