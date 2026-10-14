@@ -23,8 +23,9 @@ const dir=join(base,'.state','oracle-sashai');
 const metadata=join(dir,'latest.json');
 const project='https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d/project';
 const marker=join(os.homedir(),'Library','Application Support','net.imput.helium','DevToolsActivePort');
-const pinnedOracle=join(base,'.state','oracle-local','node_modules','.bin','oracle');
-const cli=process.env.ORACLE_BIN || (existsSync(pinnedOracle) ? pinnedOracle : '/opt/homebrew/bin/oracle');
+const pinnedOracle=join(base,'.state','oracle-v0215','node_modules','.bin','oracle');
+// Fail closed: using the old Homebrew Oracle 0.21.3 silently would reintroduce commit-timeout.
+const cli=process.env.ORACLE_BIN || pinnedOracle;
 const cmd=process.argv[2]??'status';
 const prompt=process.argv.slice(3).join(' ').trim();
 await mkdir(dir,{recursive:true});
@@ -118,7 +119,7 @@ if(cmd==='diagnose'){
 }else if(cmd==='doctor'){
  const version=assertOracle();
  const cdp=await synchronizeCDP();
- console.log(JSON.stringify({oracle:version,cdp,project,profile:'Helium Profile 4',repoHarness:false},null,2));
+ console.log(JSON.stringify({oracle:version,cli,cdp,project,profile:'Helium Profile 4',repoHarness:false},null,2));
 }else if(cmd==='status'){
  const record=existsSync(metadata)?JSON.parse(await readFile(metadata,'utf8')):{status:'not_started'};
  console.log(JSON.stringify(record,null,2));

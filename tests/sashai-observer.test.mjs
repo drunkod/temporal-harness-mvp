@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSashaiChatUrl, classifyReadOnlyPage, sashaiOverview } from '../dist/sashai-observer.js';
+import { parseSashaiChatUrl, classifyReadOnlyPage, chooseAutoAdoptCandidate, sashaiOverview } from '../dist/sashai-observer.js';
 
 const chatUrl='https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/6acfb5c5-ea98-83ed-a041-da6cb6e3814b';
 
@@ -42,11 +42,17 @@ test('read-only observer correlates browser evidence independently of failing Or
     assert.ok([
       '6acfb5c5-ea98-83ed-a041-da6cb6e3814b',
       '6acfbc18-4c98-83ed-b711-a5a8e9efb121',
+      '6acfc4f3-2cdc-83eb-8e4a-c8a955ce7fb0',
     ].includes(actual.observation.conversationId));
     assert.equal(actual.observation.turnState,'turn_finished');
     assert.equal(actual.independentlyObservedAnswer,true);
-    assert.equal(actual.oracle.oracleStatus,'error');
-    assert.ok(actual.oracle.captureError);
+    if(actual.observation.conversationId==='6acfc4f3-2cdc-83eb-8e4a-c8a955ce7fb0'){
+      assert.equal(actual.oracle.oracleStatus,'completed');
+      assert.equal(actual.oracle.captureError,null);
+    }else{
+      assert.equal(actual.oracle.oracleStatus,'error');
+      assert.ok(actual.oracle.captureError);
+    }
   }
 });
 
@@ -95,4 +101,19 @@ test('locally patched Oracle keeps Homebrew global package unchanged',async(t)=>
     try{assert.doesNotMatch(await fs.readFile(global,'utf8'),/ChatGPT 2026 UI/);}
     catch(err){if(err.code==='ENOENT')t.diagnostic('Homebrew Oracle not installed on this test host');else throw err;}
   }catch(err){if(err.code==='ENOENT')t.skip('Local Oracle pin not installed');else throw err;}
+});
+
+test('passive supervisor chooses only a uniquely active Sashai task',()=>{
+  const a='https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/6acfb5c5-ea98-83ed-a041-da6cb6e3814b';
+  const b='https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/6acfbc18-4c98-83ed-b711-a5a8e9efb121';
+  assert.deepEqual(chooseAutoAdoptCandidate([
+    {url:a,turnState:'turn_finished'},{url:b,turnState:'running'}],a),
+    {url:b,reason:'single_running_chat'});
+  assert.deepEqual(chooseAutoAdoptCandidate([{url:a,turnState:'awaiting_answer'}],b),
+    {url:a,reason:'single_pending_response'});
+  assert.equal(chooseAutoAdoptCandidate([{url:a,turnState:'running'},{url:b,turnState:'running'}],null),null);
+  assert.equal(chooseAutoAdoptCandidate([{url:a,turnState:'turn_finished'},{url:b,turnState:'turn_finished'}],null),null);
+  assert.equal(chooseAutoAdoptCandidate([{url:a,turnState:'turn_finished'}],a),null);
+  assert.deepEqual(chooseAutoAdoptCandidate([{url:a,turnState:'turn_finished'}],null),
+    {url:a,reason:'sole_finished_chat'});
 });

@@ -18,7 +18,10 @@
     "sashai:adopt": "node scripts/sashai-supervisor.mjs adopt",
     "oracle:doctor": "node scripts/oracle-sashai.mjs doctor",
     "oracle:pin": "node scripts/prepare-oracle-local.mjs",
-    "oracle:diagnose": "node scripts/oracle-sashai.mjs diagnose"
+    "oracle:diagnose": "node scripts/oracle-sashai.mjs diagnose",
+    "sashai:auto-adopt": "node scripts/sashai-supervisor.mjs auto-adopt",
+    "sashai:supervise": "node scripts/sashai-supervisor.mjs supervise forever",
+    "sashai:watcher-status": "bash scripts/manage-sashai-watcher.sh status"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

@@ -8,8 +8,11 @@ export const ORACLE_SMOKE_SLUG = 'flowdeck-sashai-oracle-live-cdp';
 const store = join(resolve(process.cwd()), '.state', 'oracle-sashai');
 const adoptedFile = join(store, 'adopted.json');
 const observedOracleSmokes = [
-  { slug: ORACLE_SMOKE_SLUG, expected: 'ORACLE_SASHAI_SMOKE_OK' },
+  // Prefer the most recent matching session when several turns share one conversation.
+  { slug: 'sashai-pristine-v0215-followup', expected: 'SASHAI_ORACLE_0215_FOLLOWUP_OK' },
+  { slug: 'sashai-pristine-v0215-smoke', expected: 'SASHAI_ORACLE_0215_OK' },
   { slug: 'oracle-sashai-local-patched-smoke', expected: 'ORACLE_SASHAI_PATCH_OK_20261014B' },
+  { slug: ORACLE_SMOKE_SLUG, expected: 'ORACLE_SASHAI_SMOKE_OK' },
 ];
 
 export function parseSashaiChatUrl(value: string): { url: string; conversationId: string } {
@@ -103,7 +106,8 @@ export async function observeSashaiConversation(value: string) {
   const target = pages.find(page => page.type === 'page' && page.url.split('?')[0] === chat.url && !!page.webSocketDebuggerUrl);
   if (!target?.webSocketDebuggerUrl) {
     return { ...chat, browser: 'tab_not_open', turnState: 'not_observable',
-      taskState: 'unverified', lastAssistant: '', observedAt: new Date().toISOString() };
+      taskState: 'unverified', lastAssistant: '', userTurns: 0, assistantTurns: 0,
+      generationStopVisible: false, observedAt: new Date().toISOString() };
   }
   const result = await evaluateTarget(target.webSocketDebuggerUrl);
   if (result.path !== new URL(chat.url).pathname) throw new Error('Tab changed while being observed');
@@ -116,6 +120,10 @@ export async function adoptSashaiConversation(value: string) {
   const state = await observeSashaiConversation(chat.url);
   if (state.browser !== 'attached_read_only')
     throw new Error('Target Sashai chat must be open in Helium Profile 4 before adoption');
+  // A just-opened ChatGPT conversation can briefly display the correct URL
+  // before its turns hydrate. Never persist that transient empty/unknown state.
+  if (state.userTurns === 0 && state.assistantTurns === 0 && !state.generationStopVisible)
+    throw new Error('Sashai chat not hydrated yet; wait for a visible turn before adoption');
   await mkdir(store, { recursive: true });
   await writeFile(adoptedFile, JSON.stringify({ ...chat, adoptedAt: new Date().toISOString() }, null, 2));
   return state;
@@ -124,6 +132,49 @@ export async function readAdoptedSashai() {
   try { return JSON.parse(await readFile(adoptedFile, 'utf8')) as {url: string; conversationId: string; adoptedAt: string}; }
   catch { return null; }
 }
+/**
+ * Choose exactly one safely identifiable manually-started ChatGPT task.
+ * No send/navigate side-effects. A single active generation wins; ties
+ * remain ambiguous. Never switch an adopted idle chat to another idle chat.
+ */
+export function chooseAutoAdoptCandidate(
+  candidates: Array<{ url: string; turnState: string }>,
+  adoptedUrl: string | null
+): { url: string; reason: string } | null {
+  const running = candidates.filter(x => x.turnState === 'running');
+  if (running.length === 1) return { url: running[0].url, reason: 'single_running_chat' };
+  if (running.length > 1) return null;
+  const awaiting = candidates.filter(x => x.turnState === 'awaiting_answer');
+  if (awaiting.length === 1) return { url: awaiting[0].url, reason: 'single_pending_response' };
+  if (awaiting.length > 1) return null;
+  if (!adoptedUrl && candidates.length === 1 && candidates[0].turnState === 'turn_finished')
+    return { url: candidates[0].url, reason: 'sole_finished_chat' };
+  return null;
+}
+
+export async function autoAdoptSashai() {
+  const existing = await readAdoptedSashai();
+  const tabs = await listSashaiTabs();
+  // The same chat can be open in multiple Helium windows; count it only once.
+  const uniqueTabs = [...new Map(tabs.map(tab => [tab.url, tab])).values()];
+  const states = await Promise.all(uniqueTabs.map(async tab => {
+    try {
+      const state = await observeSashaiConversation(tab.url);
+      return { url: tab.url, turnState: state.turnState, conversationId: tab.conversationId };
+    } catch { return { url: tab.url, turnState: 'not_observable', conversationId: tab.conversationId }; }
+  }));
+  const chosen = chooseAutoAdoptCandidate(states, existing?.url ?? null);
+  if (!chosen) return { status: 'no_change', monitoredTabs: states.length,
+    runningChats: states.filter(s => s.turnState === 'running').length,
+    adoptedChat: existing?.conversationId ?? null };
+  if (existing?.url === chosen.url)
+    return { status: 'already_adopted', reason: chosen.reason,
+      conversationId: existing.conversationId };
+  const observation = await adoptSashaiConversation(chosen.url);
+  return { status: 'adopted', reason: chosen.reason, conversationId: observation.conversationId,
+    turnState: observation.turnState };
+}
+
 export async function readOracleSmokeEvidence(conversationUrl?: string | null) {
   const sessions = [];
   for (const known of observedOracleSmokes) {
@@ -144,8 +195,8 @@ export async function readOracleSmokeEvidence(conversationUrl?: string | null) {
       });
     } catch { /* absent session */ }
   }
-  return sessions.find(s => s.conversationUrl === conversationUrl)
-    || sessions[0] || null;
+  return conversationUrl ? sessions.find(s => s.conversationUrl === conversationUrl) || null
+    : sessions[0] || null;
 }
 export async function sashaiOverview() {
   const adopted = await readAdoptedSashai();

@@ -23,11 +23,18 @@ const target=pages.find(x=>x.type==='page' && x.url?.split('?')[0]===tabUrl && x
 const localSrc=join(root,'.state','oracle-local','node_modules','@steipete','oracle','dist','src','browser');
 const baseSrc='/opt/homebrew/Cellar/oracle/0.21.3/libexec/lib/node_modules/@steipete/oracle/dist/src/browser';
 const originalSrc=existsSync(join(baseSrc,'conversationTurns.js'))?baseSrc:localSrc;
+const modernSrc=join(root,'.state','oracle-v0215','node_modules','@steipete','oracle','dist','src','browser');
 const {buildConversationTurnListExpression:originalTurns}=await import(join(originalSrc,'conversationTurns.js'));
-const {buildConversationTurnListExpression:patchedTurns}=await import(join(localSrc,'conversationTurns.js'));
+// Retain the historical patched 0.21.3 comparison only when that old local
+// installation exists. Fresh 0.21.5 setups must not depend on monkey-patches.
+const patchedTurns = existsSync(join(localSrc,'conversationTurns.js'))
+  ? (await import(join(localSrc,'conversationTurns.js'))).buildConversationTurnListExpression
+  : () => '([])';
+const {buildConversationTurnListExpression:modernTurns}=await import(join(modernSrc,'conversationTurns.js'));
 const expression=`(() => {
  const original = ${originalTurns()};
  const patched = ${patchedTurns()};
+ const modern = ${modernTurns()};
  const heads=[...document.querySelectorAll('h4.sr-only')];
  const marker=h=>String(h.textContent||'').trim();
  const visible = n=>Boolean(n?.getBoundingClientRect?.().height);
@@ -37,7 +44,10 @@ const expression=`(() => {
  return {
    hrefMatchesExpected:location.href.split('?')[0]===${JSON.stringify(tabUrl)},
    loading:document.readyState,
-   oldTurnCount:original.length, patchedTurnCount:patched.length,
+   oldTurnCount:original.length, patchedTurnCount:patched.length, modernTurnCount:modern.length,
+   modernRoleAttrs:modern.map(n=>String(n.getAttribute('data-content-search-unit-key') || n.getAttribute('data-chatgpt-search-unit-key') || n.getAttribute('data-message-author-role') || n.getAttribute('data-turn') || 'exchange').split(':').at(-1)),
+   modernAssistantChildren:modern.map(n=>n.querySelectorAll(':is([data-message-author-role="assistant"],[data-content-search-unit-key$=":assistant"],[data-chatgpt-search-unit-key$=":assistant"]),[data-turn="assistant"]').length),
+   modernUserChildren:modern.map(n=>n.querySelectorAll(':is([data-message-author-role="user"],[data-content-search-unit-key$=":user"],[data-chatgpt-search-unit-key$=":user"]),[data-turn="user"]').length),
    oldAssistantCount:legacyAssistant,
    headingCounts:{user:heads.filter(h=>marker(h)==='You said:').length,
        assistant:heads.filter(h=>marker(h)==='ChatGPT said:').length},

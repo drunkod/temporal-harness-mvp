@@ -23,6 +23,8 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 ## Sashai ChatGPT Supervisor — current primary MVP (Oracle-only)
 
+The active CLI is the isolated, unmodified Oracle **0.21.5** (`npm run oracle:pin`); the global Homebrew Oracle 0.21.3 is untouched. Live new-chat and same-chat followup tests completed with accurate saved responses. A read-only background watcher (`scripts/manage-sashai-watcher.sh status|start|stop`) may adopt exactly one active Sashai chat; it never dispatches work.
+
 The live homepage at **http://127.0.0.1:4319/** now displays the Sashai project conversation, **read-only adoption**, the current ChatGPT turn status and independently observed Oracle answer evidence. The active integration uses **Oracle CLI + Helium Profile 4 CDP** without Repo Harness. The earlier two-fixture workflow is retained as historical evidence, but its `POST /api/start` launcher is disabled with HTTP 410. No automatic Sashai task submission or Desktop Commander connector selection is claimed yet.
 
 ```bash
@@ -31,10 +33,12 @@ npm test
 node scripts/sashai-supervisor.mjs doctor
 node scripts/sashai-supervisor.mjs status
 node scripts/sashai-supervisor.mjs watch 5
+node scripts/sashai-supervisor.mjs auto-adopt
+scripts/manage-sashai-watcher.sh status
 scripts/open-helium-profile4.sh
 ```
 
-Read-only Oracle browser diagnostics: `node scripts/oracle-sashai.mjs diagnose flowdeck-sashai-oracle-live-cdp`. See [root-cause report](docs/ORACLE-PROMPT-COMMIT-RCA.md). Native Oracle completion capture is still not fixed; do not blindly rerun failed sessions.
+Read-only Oracle browser diagnostics: `node scripts/oracle-sashai.mjs diagnose flowdeck-sashai-oracle-live-cdp`. See [root-cause report](docs/ORACLE-PROMPT-COMMIT-RCA.md). Oracle **0.21.5 now captures answers and same-chat followups** in live Sashai smoke tests. Legacy 0.21.3 sessions must not be blindly replayed.
 
 See [the canonical Oracle Sashai plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md) and [Sashai user journey](docs/SASHAI-SUPERVISOR-JOURNEY.md). Prior Repo Harness integration in `src/activities.ts` remains isolated in the legacy fixture and is **not** part of the active Sashai supervisor.
 

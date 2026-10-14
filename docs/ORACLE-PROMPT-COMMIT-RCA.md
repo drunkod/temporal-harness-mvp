@@ -1,5 +1,7 @@
 # Oracle 0.21.3 / ChatGPT Sashai — prompt-commit-timeout RCA and diagnostics
 
+> **RESOLVED BY UPGRADE for fresh Oracle-authored turns.** On 2026-10-14, the unmodified Oracle **0.21.5** successfully completed both a new Sashai ChatGPT project chat and same-conversation `--followup` with saved exact responses. This report explains the historical **0.21.3** regression and remains useful to interpret failed saved sessions. No upstream monkey patch is needed by our current adapter. Manual-chat adoption/followup and real Desktop Commander tool selection remain separate acceptance gates.
+
 Date: 2026-10-14
 Environment: Helium Chromium 155, running Profile 4 with local CDP at 127.0.0.1:9222.
 All diagnostics in this report are **read-only against existing ChatGPT conversations**. No second prompt has been submitted while investigating the bug.

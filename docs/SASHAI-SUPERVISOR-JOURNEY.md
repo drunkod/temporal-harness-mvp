@@ -1,7 +1,7 @@
 # Sashai — autonomous ChatGPT project supervisor journey
 
 Date: 2026-10-14
-Status: target journey; **passive adoption and Oracle-only project chat creation confirmed**. Autonomous continuation, Desktop Commander connector selection and task verification remain unimplemented.
+Status: target journey. **Oracle 0.21.5 creates new Sashai chats and continues an Oracle-created chat successfully; CDP passive observation and guarded automatic adoption are implemented.** Continuation of arbitrary manually started chats, Desktop Commander connector selection, task verification and autonomous next-task dispatch remain unimplemented.
 Current implementation plan: [ORACLE-SASHAI-SUPERVISOR-PLAN.md](ORACLE-SASHAI-SUPERVISOR-PLAN.md).
 
 ## 1. What the owner does
@@ -52,7 +52,7 @@ Proposed instruction shape:
 
 > Continue the existing Sashai task using Desktop Commander on my MacBook. Follow AGENTS.md and the resolved active plan's Task Breakdown. Resume from the recorded checkpoint. Finish these specific remaining steps and run the missing acceptance checks. Do not start an unrelated task. Return current task, work completed, verification evidence, remaining work and blockers.
 
-Oracle --followup can continue an already confirmed browser session. The earlier prompt-commit-timeout session does not qualify; same-chat followup for adopted manual chats is not yet proven. Each attempt is journaled; same-chat concurrent submissions and duplicate continuation are prevented. Small turn/time budgets and no-progress detection pause runaway work.
+**Verified:** unmodified Oracle 0.21.5 successfully used `--followup` on a previously completed Oracle-created Sashai conversation (both sessions have identical conversation ID). The earlier 0.21.3 prompt-commit-timeout session still does not qualify; same-chat continuation of an **adopted manually started** chat remains unproven. Each attempt is journaled; same-chat concurrent submissions and duplicate continuation are prevented. Small turn/time budgets and no-progress detection pause runaway work.
 
 ### E. Verify and update the right task source
 

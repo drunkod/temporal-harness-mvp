@@ -16,7 +16,8 @@ test('Oracle diagnosis is passive, records mismatch without transcript contents'
   assert.equal(result.oracleErrorCode,'prompt-commit-timeout');
   assert.equal(result.promptSubmitted,true);
   assert.equal(result.cdp?.oldTurnCount,0);
-  assert.equal(result.cdp?.patchedTurnCount,2);
+  assert.equal(result.cdp?.modernTurnCount,1);
+  assert.ok([0,2].includes(result.cdp?.patchedTurnCount), 'historical local patch is optional');
   assert.equal(result.cdp?.headingCounts?.user,1);
   assert.equal(result.cdp?.headingCounts?.assistant,1);
   assert.equal(result.cdp?.oldAssistantCount,0);
