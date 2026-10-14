@@ -65,3 +65,15 @@ node scripts/sashai-synthetic-temporal.mjs status repair
 node scripts/sashai-synthetic-temporal.mjs status uncertain
 npm test
 ```
+
+## 5. Follow-up review and isolated regression coverage
+
+Reviewed commit 2ac5cae with Codegraph; baseline suite reproduced 51 passing tests, two historical-browser skips and no failures. The recorded uncertain-send scenario is already present and covered; it is not an outstanding synthetic gate.
+
+Found and fixed a pre-correction gap: repairFixtureOnce now rereads the durable attempt and checks it against the original binding before issuing a correction claim or editing the disposable artifact. Receipt identity alone was insufficient when attempt.json changed between rejection and correction.
+
+Added tests/sashai-synthetic-isolated.test.mjs with fresh temporary working directories and separate processes. These tests need neither Temporal nor browser history and do not touch the saved synthetic proofs. They cover a complete fresh repair lifecycle, timeout-after-send no-replay/no-correction, changed durable attempt rejection before side effects and rejected-artifact drift before correction.
+
+Validation after this change: 55 tests passed, two skipped, zero failed; TypeScript build and git diff --check passed; editor diagnostics reported no errors/warnings. No new Temporal execution, worker restart, browser submission, report acceptance rewrite or Sashai change occurred during this follow-up review.
+
+A bounded live test proposal is in [SASHAI-LIVE-TEMPORAL-REPORT-TEST-PROPOSAL.md](SASHAI-LIVE-TEMPORAL-REPORT-TEST-PROPOSAL.md). It is proposed, not approved or dispatched. Fresh Temporal-controlled connector selection and same-chat correction remain the next live capability gates.

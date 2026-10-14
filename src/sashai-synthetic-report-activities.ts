@@ -102,6 +102,8 @@ export async function verifyFixture(binding:FixtureBinding):Promise<FixtureRecei
   artifactSha256:text?hash(text):'',accepted:unmet.length===0,unmet};
 }
 export async function repairFixtureOnce(binding:FixtureBinding,failed:FixtureReceipt):Promise<void>{
+ const current=await readAttempt(binding.mode);
+ if(!same(binding,current))throw Error('Synthetic pre-correction attempt identity changed');
  if(binding.mode!=='repair')throw Error('Cannot repair an uncertain send');
  if(failed.accepted||failed.unmet.join(',')!=='required_marker_missing')throw Error('Unapproved correction scope');
  if(failed.taskId!==binding.taskId||failed.attemptId!==binding.attemptId||
