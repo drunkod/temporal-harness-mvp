@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { Connection, Client } from '@temporalio/client';
 import { roamingMvp, statusQuery } from './workflows.js';
+import { sashaiOverview, listSashaiTabs, adoptSashaiConversation } from './sashai-observer.js';
 
 const exec = promisify(execFile);
 const base = resolve(process.cwd());
@@ -85,13 +86,42 @@ async function beginRun(): Promise<RunManifest> {
   return manifest;
 }
 const staticHtml = join(base, 'public', 'index.html');
+const sashaiHtml = join(base, 'public', 'sashai.html');
 const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
   const url = new URL(req.url || '/', 'http://' + host + ':' + port);
   try {
-    if (req.method === 'GET' && url.pathname === '/') {
+    if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/sashai')) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(await readFile(sashaiHtml, 'utf8'));
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/fixtures') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(await readFile(staticHtml, 'utf8'));
       return;
+    }
+    if (req.method === 'GET' && url.pathname === '/api/sashai/status') {
+      json(res, 200, await sashaiOverview()); return;
+    }
+    if (req.method === 'GET' && url.pathname === '/api/sashai/tabs') {
+      json(res, 200, { tabs: await listSashaiTabs() }); return;
+    }
+    if (req.method === 'POST' && url.pathname === '/api/sashai/adopt') {
+      let body = '';
+      for await (const chunk of req) {
+        body += chunk.toString();
+        if (body.length > 4096) { json(res, 413, { error: 'Input too large' }); return; }
+      }
+      const supplied = body.trim() ? JSON.parse(body) as { url?: string } : {};
+      let chosen = supplied.url ?? null;
+      if (!chosen) {
+        const tabs = await listSashaiTabs();
+        if (tabs.length !== 1) {
+          json(res, 409, { error: 'Open exactly one Sashai chat tab or provide its URL explicitly', count: tabs.length }); return;
+        }
+        chosen = tabs[0].url;
+      }
+      json(res, 200, { observation: await adoptSashaiConversation(chosen) }); return;
     }
     if (req.method === 'GET' && url.pathname === '/api/health') {
       json(res, 200, { status: 'ok', temporal: 'connected', activeId }); return;
@@ -105,8 +135,9 @@ const server = createServer(async (req: IncomingMessage, res: ServerResponse) =>
       json(res, 200, await workflowStatus(id)); return;
     }
     if (req.method === 'POST' && url.pathname === '/api/start') {
-      if (!launching) launching = beginRun().finally(() => { launching = null; });
-      json(res, 201, await launching); return;
+      // Repo Harness fixture lane is historical, not part of the Oracle-only supervisor.
+      // Prevent new runs from accidentally invoking that legacy browser adapter.
+      json(res, 410, { error: 'Legacy Repo Harness fixture disabled. Use /api/sashai/adopt for read-only Sashai supervision.' }); return;
     }
     json(res, 404, { error: 'Not found' });
   } catch (err) {

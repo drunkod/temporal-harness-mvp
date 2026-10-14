@@ -1,10 +1,10 @@
-# Temporal × Repo Harness × Jev — runnable MVP
+# Flowdeck — Oracle-only Sashai Chat Supervisor
 
 **Created:** 2026-10-14 · **MacBook:** Tests-MacBook-Air · **deadline demo:** next morning.
 
-A small, independent Git repository under `~/Documents/work/temporal-harness-mvp`. Its purpose is to prove a **real Temporal-controlled loop**, rather than merely draw a diagram.
+A small, independent Git repository under `~/Documents/work/temporal-harness-mvp`. Its primary demonstration is **Oracle-only Sashai conversation supervision** in Helium Profile 4; the original Temporal two-fixture execution proof remains available for historical inspection.
 
-## Proven stages
+## Historical Temporal fixture stages (not the active Sashai pipeline)
 
 ```
 Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
@@ -21,6 +21,21 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 **Important scope:** This is an intentionally narrow proof. The spec compiler is **deterministic**, not an autonomous AI planner. The executor applies an exact file, not a real Codex model invocation. The browser stage generates local **dry-run** sessions; it is not proof of a completed ChatGPT consultation. Temporal is real and persistent, but retry recovery of arbitrary side effects is not yet production-hardened. No real project repositories are modified.
 
+## Sashai ChatGPT Supervisor — current primary MVP (Oracle-only)
+
+The live homepage at **http://127.0.0.1:4319/** now displays the Sashai project conversation, **read-only adoption**, the current ChatGPT turn status and independently observed Oracle answer evidence. The active integration uses **Oracle CLI + Helium Profile 4 CDP** without Repo Harness. The earlier two-fixture workflow is retained as historical evidence, but its `POST /api/start` launcher is disabled with HTTP 410. No automatic Sashai task submission or Desktop Commander connector selection is claimed yet.
+
+```bash
+cd ~/Documents/work/temporal-harness-mvp
+npm test
+node scripts/sashai-supervisor.mjs doctor
+node scripts/sashai-supervisor.mjs status
+node scripts/sashai-supervisor.mjs watch 5
+scripts/open-helium-profile4.sh
+```
+
+See [the canonical Oracle Sashai plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md) and [Sashai user journey](docs/SASHAI-SUPERVISOR-JOURNEY.md). Prior Repo Harness integration in `src/activities.ts` remains isolated in the legacy fixture and is **not** part of the active Sashai supervisor.
+
 ## Live browser dashboard (now implemented)
 
 Open **http://127.0.0.1:4319/** in a **new Helium Profile 4 window** (verified name: `drunkod gpt`), keeping your existing ChatGPT tab untouched:
@@ -30,7 +45,7 @@ cd ~/Documents/work/temporal-harness-mvp
 scripts/open-helium-profile4.sh
 ```
 
-The dashboard is served by `org.drunkod.temporal-harness-mvp-dashboard` and the Worker by `org.drunkod.temporal-harness-mvp-worker` (both user LaunchAgents). It polls Temporal every 700 ms. **Start fresh demo** creates independent Alpha/Beta repos on every finished run, and Recent demonstrations reads history without side effects. Check `docs/DEMO-GUIDE.md` and `docs/ARCHITECTURE-CODEGRAPH.md` for the presentation and Codegraph-derived Mermaid diagram.
+The dashboard is served by `org.drunkod.temporal-harness-mvp-dashboard`; its **main Sashai view polls Helium via CDP every two seconds**. The independent Temporal worker remains available for historical fixture runs, but new fixture dispatch via the HTTP API is disabled. Check `docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md` for the current architecture.
 
 ## Quick start on MacBook
 

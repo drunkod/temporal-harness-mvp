@@ -19,7 +19,7 @@ PY
 # macOS 'open --args' is ignored when Helium is already running.
 # Calling the Chromium executable hands the new-window request to the EXISTING instance
 # via its singleton socket, then exits. Never use 'open -n' or a second user data dir.
-if ! pgrep -f '^/Applications/Helium.app/Contents/MacOS/Helium$' >/dev/null; then
+if ! pgrep -f '^/Applications/Helium.app/Contents/MacOS/Helium([[:space:]]|$)' >/dev/null; then
   echo 'Helium is not running. Start it in Profile 4 first.' >&2; exit 1
 fi
 "$APP/Contents/MacOS/Helium" --profile-directory="$PROFILE" --new-window "$URL"

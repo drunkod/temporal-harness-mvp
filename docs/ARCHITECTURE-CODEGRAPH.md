@@ -1,3 +1,5 @@
+> **HISTORICAL FIXTURE DEMO.** The primary live UI is the Oracle-only Sashai supervisor at http://127.0.0.1:4319/. New fixture dispatch via POST /api/start is intentionally disabled. For the current Sashai plan use [ORACLE-SASHAI-SUPERVISOR-PLAN.md](ORACLE-SASHAI-SUPERVISOR-PLAN.md).
+
 # Codegraph Architecture Map — Flowdeck MVP
 
 **Updated:** 2026-10-14. Generated as a developer diagram from inspected Codegraph symbols, call relationships, and current source. The graph database is local and not committed.

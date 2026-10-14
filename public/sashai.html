@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Flowdeck — Sashai Supervisor</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;--bg:#080b14;--surface:#111827;--border:#29334a;--muted:#99a8c2;--text:#ebf2fe;--accent:#96abff;--good:#78e2af;--warn:#ffd08e;--bad:#ff969e}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#243156 0%,#0a0e19 64%);color:var(--text);font-size:14px;line-height:1.5}.shell{max-width:1230px;margin:0 auto;padding:26px 24px 65px}.top{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-bottom:23px;border-bottom:1px solid var(--border)}.brand{display:flex;gap:12px;align-items:center}.mark{height:40px;width:40px;border-radius:12px;background:linear-gradient(135deg,#c2c5ff,#6989f2);display:grid;place-items:center;font-weight:800;font-size:23px;color:#0c1433}.wordmark{font-weight:800;font-size:18px;letter-spacing:-.4px}.micro{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}.pulse{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px #78e2af1c}.dot.off{background:var(--bad);box-shadow:none}
+.hero{display:flex;align-items:end;justify-content:space-between;gap:22px;margin:38px 0 30px}.eyebrow{color:var(--accent);text-transform:uppercase;font-weight:750;letter-spacing:1.7px;font-size:11px}h1{margin:8px 0 9px;font-size:clamp(28px,3.9vw,43px);letter-spacing:-1.35px;line-height:1.17}p{margin:0;color:var(--muted)}.hero p{max-width:685px;font-size:13px}.buttons{display:flex;gap:9px;flex-wrap:wrap}.btn{border-radius:10px;border:1px solid #34415b;background:#1d2941;color:#ecf1ff;padding:12px 16px;font-weight:680;font-size:12px;cursor:pointer}.btn.primary{background:linear-gradient(100deg,#a4b5ff,#85a6ef);color:#10182b;border:0}.btn:hover{filter:brightness(1.13)}.btn:disabled{opacity:.5;cursor:wait}.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}.panel{border:1px solid var(--border);border-radius:16px;background:linear-gradient(145deg,#141d2e,#0e1420);overflow:hidden}.head{padding:20px 22px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--border)}.head h2{font-size:15px;letter-spacing:-.2px;margin:0}.small{font-size:11px;color:var(--muted)}.pad{padding:20px 22px}.big-state{font-size:31px;font-weight:760;letter-spacing:-1px}.sub-state{font-size:12px;color:var(--muted);margin:2px 0 18px}.projectbadge{display:inline-flex;align-items:center;gap:7px;border:1px solid #415475;background:#223150;padding:6px 10px;border-radius:9px;font-size:11px;color:#c8d7fb}.orb{height:8px;width:8px;border-radius:50%;background:#96aeff}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.metric{padding:16px;border:1px solid var(--border);border-radius:12px;background:#121d30}.k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}.v{font-size:24px;font-weight:760;letter-spacing:-.7px;margin:5px 0}.fine{color:var(--muted);font-size:11px}.kv{display:flex;justify-content:space-between;align-items:start;gap:18px;border-top:1px solid var(--border);padding:11px 0;font-size:12px}.kv .key{color:var(--muted)}.kv .val{text-align:right;overflow-wrap:anywhere;max-width:63%;font-family:ui-monospace,Menlo,monospace;color:#c5d3f3;font-size:11px}.muted{color:var(--muted)}.success{color:var(--good)!important}.warning{color:var(--warn)!important}.error{color:var(--bad)!important}.trace{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#c6d5f1;font-size:12px;background:#0a111e;border:1px solid #253652;border-radius:11px;padding:14px 15px;min-height:76px;overflow-wrap:anywhere;white-space:pre-wrap}.step{display:flex;gap:12px;margin:17px 0}.stepnum{width:25px;height:25px;display:grid;place-items:center;background:#233658;border:1px solid #3b537c;color:#bcd0ff;border-radius:9px;font-size:11px;font-weight:800;flex-shrink:0}.step strong{display:block;font-size:12px;margin-bottom:4px}.step span{display:block;font-size:12px;color:var(--muted)}.note{margin-top:15px;background:#192840;border-left:2px solid #91a8f7;border-radius:0 9px 9px 0;padding:13px 16px;color:#c4d2ec;font-size:12px}.link{color:#9dbaff;text-decoration:none}.link:hover{text-decoration:underline}.footer{margin-top:23px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}.events{margin-top:15px;font:11px/1.5 ui-monospace,monospace;color:var(--muted)}.event{padding:7px 0;border-top:1px solid #28354b}.state-pill{border-radius:6px;padding:5px 8px;color:#a8bddb;background:#28354a;font-size:11px;font-weight:700}.state-pill.ok{background:#194536;color:#83e5b4}.state-pill.bad{background:#503233;color:#ffb4b6}
+@media(max-width:880px){.grid{grid-template-columns:1fr}.hero{flex-direction:column;align-items:start}.cards{grid-template-columns:1fr 1fr}}@media(max-width:550px){.shell{padding:17px 13px 45px}.cards{grid-template-columns:1fr}.top{align-items:start;flex-direction:column}.pad{padding:17px}.head{padding:17px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top"><div class="brand"><div class="mark">↗</div><div><div class="wordmark">Flowdeck <span style="font-weight:400;color:#9eb1d4">/ Sashai</span></div><div class="micro">Oracle-only · ChatGPT supervisor</div></div></div><div class="pulse"><span id="led" class="dot"></span><span id="connect">Подключение к Helium…</span><span class="projectbadge">Helium · Profile 4</span></div></header>
+<section class="hero"><div><div class="eyebrow">Наблюдение без повторной отправки</div><h1>Статус работы<br/>в проекте Sashai.</h1><p>Flowdeck наблюдает за уже существующим разговором ChatGPT через CDP, сопоставляет его с записью Oracle CLI и не принимает завершение ответа за выполнение задачи проекта.</p></div><div class="buttons"><select id="tabPicker" class="btn" aria-label="Выберите чат Sashai" style="max-width:225px"><option value="">Выберите чат Sashai…</option></select><button class="btn primary" id="adopt">Принять выбранный чат</button><button class="btn" id="refresh">↻ Обновить</button></div></section>
+<div class="grid">
+<section class="panel"><div class="head"><h2>Текущий разговор</h2><span class="state-pill" id="badge">Ожидание</span></div><div class="pad">
+ <div class="projectbadge"><span class="orb"></span> dr/sashai · ChatGPT Project</div>
+ <div class="big-state" id="stage">Загрузка…</div><div class="sub-state" id="stageDescription">Проверяем адрес проекта и состояние окна.</div>
+ <div class="cards"><div class="metric"><div class="k">Сообщения пользователя</div><div class="v" id="userCount">—</div><div class="fine">Подтверждённые ходы в UI</div></div><div class="metric"><div class="k">Ответы ChatGPT</div><div class="v" id="assistantCount">—</div><div class="fine">Прочитано из DOM</div></div><div class="metric"><div class="k">Состояние задачи</div><div class="v warning" style="font-size:18px;margin-top:9px" id="task">Не проверена</div><div class="fine">Нужны тесты/критерии</div></div></div>
+ <div class="kv"><span class="key">Проект</span><span class="val">dr/sashai</span></div>
+ <div class="kv"><span class="key">Chat ID</span><span id="conversation" class="val">—</span></div>
+ <div class="kv"><span class="key">Источник</span><span id="source" class="val">Helium CDP · только чтение</span></div>
+ <div class="kv"><span class="key">Генерация</span><span id="generation" class="val">—</span></div>
+ <div class="kv"><span class="key">Действия с чатом</span><span class="val success">Только наблюдение · 0 отправок</span></div>
+ <div class="head" style="padding:22px 0 12px"><h2>Последний видимый ответ</h2><span class="small">Без интерпретации завершения задачи</span></div>
+ <div id="preview" class="trace">Ожидаем загрузки чата…</div>
+ <p style="margin-top:13px;font-size:12px" id="linkbox"></p>
+ <div class="note">Существующие задачи Sashai берутся из <strong>утверждённого плана → Task Breakdown</strong>. <code>tasks/current.md</code> — только снимок, <code>tasks/todos.md</code> — отложенные цели. Автозапуск без определения активного плана отключён.</div>
+</div></section>
+<aside>
+ <section class="panel"><div class="head"><h2>Oracle CLI · независимая проверка</h2><span class="small">0.21.3</span></div><div class="pad">
+   <div class="step"><div class="stepnum">1</div><div><strong>Создание разговора в Sashai</strong><span id="oracleSent">Считываем сохранённую Oracle-сессию…</span></div></div>
+   <div class="step"><div class="stepnum">2</div><div><strong>Ответ в браузере</strong><span id="oracleEvidence">Ожидаем наблюдение…</span></div></div>
+   <div class="step"><div class="stepnum">3</div><div><strong>Внутренняя фиксация Oracle</strong><span id="oracleState">—</span></div></div>
+   <div class="kv"><span class="key">Последняя проверка</span><span id="updated" class="val">—</span></div>
+   <div class="kv"><span class="key">Открытых вкладок Sashai</span><span id="tabCount" class="val">—</span></div>
+   <div class="note"><strong>Независимые статусы:</strong> ошибка Oracle <code>prompt-commit-timeout</code> не опровергает ответ, реально появившийся в ChatGPT. Но успешный ответ не доказывает, что Desktop Commander исполнил задачу.</div>
+ </div></section>
+ <section class="panel" style="margin-top:16px"><div class="head"><h2>События наблюдателя</h2><span class="small">Обновление каждые 2 с</span></div><div class="pad"><div id="events" class="events"><div class="event">Запуск наблюдения…</div></div></div></section>
+</aside>
+</div><div class="footer"><span>Режим: read-only adoption · Oracle browser · Helium Profile 4</span><span>Историческая фикстурная демонстрация сохранена отдельно, но не запускается: <a class="link" href="/fixtures">просмотреть</a></span></div>
+</div>
+<script>
+(() => {
+ const $=id=>document.getElementById(id);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let lastStatus='', timeline=[], busy=false;
+ const labels={turn_finished:'Ход завершён',running:'ChatGPT отвечает',awaiting_answer:'Ожидаем ответ',not_observable:'Вкладка закрыта',unknown:'Не определено',no_adopted_chat:'Нет принятого чата'};
+ const addEvent=(s)=>{const id=Date.now().toString(36)+'-'+s;if(timeline[0]?.key===s)return;timeline.unshift({key:s,at:new Date(),msg:s});timeline=timeline.slice(0,12);$('events').innerHTML=timeline.map(e=>'<div class="event">'+esc(e.at.toLocaleTimeString())+' · '+esc(e.msg)+'</div>').join('');};
+ const get=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw Error((await r.json()).error||r.statusText);return r.json()};
+ async function refresh(){
+  try {
+   const s=await get('/api/sashai/status');
+   const tabs=await get('/api/sashai/tabs');
+   const picker=$('tabPicker'); const previous=picker.value;
+   picker.innerHTML='<option value="">Выберите чат Sashai…</option>'+(tabs.tabs||[]).map(t=>'<option value="'+esc(t.url)+'">Чат '+esc(t.conversationId.slice(0,8))+'…</option>').join('');
+   if(previous && tabs.tabs.some(t=>t.url===previous))picker.value=previous;
+   else if(s.adopted?.url && tabs.tabs.some(t=>t.url===s.adopted.url))picker.value=s.adopted.url;
+   else if(tabs.tabs.length===1)picker.value=tabs.tabs[0].url;
+   $('led').className='dot';$('connect').textContent='Helium CDP доступен';
+   $('tabCount').textContent=String(s.tabCount);
+   $('updated').textContent=new Date(s.checkedAt).toLocaleTimeString();
+   const o=s.observation||{};
+   const state=o.turnState||s.status;
+   $('stage').textContent=labels[state]||state;
+   $('stageDescription').textContent=state==='turn_finished'?'Ответ ChatGPT завершён. Проверка выполнения самой задачи — отдельный шаг.':state==='running'?'Чат генерирует ответ; не отправляем дубли.':state==='not_observable'?'Сохранённый чат существует, но его вкладка сейчас закрыта.':'Откройте нужный чат Sashai в Helium Profile 4.';
+   $('badge').textContent=state==='turn_finished'?'Ход завершён':state==='running'?'Выполняется':'Наблюдение';
+   $('badge').className='state-pill '+(state==='turn_finished'?'ok':state==='running'?'':'bad');
+   $('userCount').textContent=o.userTurns??'—';$('assistantCount').textContent=o.assistantTurns??'—';
+   $('conversation').textContent=o.conversationId||s.adopted?.conversationId||'—';
+   $('generation').textContent=o.generationStopVisible?'Активна':'Не обнаружена';
+   $('preview').textContent=o.lastAssistant||'Нет подтверждённого ответа в открытом окне.';
+   $('linkbox').innerHTML=(o.url||s.adopted?.url)?'<a class="link" target="_blank" rel="noopener" href="'+esc(o.url||s.adopted.url)+'">Открыть наблюдаемый чат ↗</a>':'';
+   const oracle=s.oracle||{};
+   $('oracleSent').textContent=oracle.promptSubmitted?'Oracle записал отправку запроса в Sashai.':'Нет подтверждённой отправки.';
+   $('oracleEvidence').textContent=s.independentlyObservedAnswer?'✓ В UI подтверждён ответ '+(oracle.expectedAnswer||'Oracle')+'.':'Ответ пока не сопоставлен с сохранённой тестовой сессией.';
+   $('oracleEvidence').className=s.independentlyObservedAnswer?'success':'warning';
+   $('oracleState').textContent=(oracle.oracleStatus||'нет данных')+(oracle.captureError?' · '+oracle.captureError:'');
+   $('oracleState').className=oracle.oracleStatus==='error'?'error':'';
+   if(lastStatus!==state){addEvent('ChatGPT: '+(labels[state]||state));lastStatus=state;}
+   if(s.independentlyObservedAnswer) {if(!timeline.some(x=>x.key==='Oracle ответ подтверждён независимо'))addEvent('Oracle ответ подтверждён независимо');}
+  }catch(e){$('led').className='dot off';$('connect').textContent='Нет соединения';if(lastStatus!=='error'){addEvent('Ошибка: '+e.message);lastStatus='error';}}
+ }
+ $('adopt').addEventListener('click',async()=>{
+  if(busy)return;busy=true;$('adopt').disabled=true;
+  try{
+   const r=await fetch('/api/sashai/adopt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:$('tabPicker').value||undefined})});
+   const j=await r.json();if(!r.ok)throw Error(j.error||'Cannot adopt');
+   addEvent('Принят разговор '+j.observation.conversationId);
+   await refresh();
+  }catch(e){addEvent('Принятие чата: '+e.message);}
+  finally{busy=false;$('adopt').disabled=false;}
+ });
+ $('refresh').addEventListener('click',refresh);
+ refresh();setInterval(refresh,2000);
+})();
+</script>
+</body></html>

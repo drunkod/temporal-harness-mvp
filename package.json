@@ -13,7 +13,11 @@
     "verify": "node dist/verify.js",
     "test": "npm run build && node --test tests/*.test.mjs",
     "dashboard": "node dist/dashboard-server.js",
-    "demo": "npm run build && node dist/dashboard-server.js"
+    "demo": "npm run build && node dist/dashboard-server.js",
+    "sashai:status": "node scripts/sashai-supervisor.mjs status",
+    "sashai:adopt": "node scripts/sashai-supervisor.mjs adopt",
+    "oracle:doctor": "node scripts/oracle-sashai.mjs doctor",
+    "oracle:pin": "node scripts/prepare-oracle-local.mjs"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",
