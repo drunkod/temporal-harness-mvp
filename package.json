@@ -25,7 +25,10 @@
     "sashai:watcher-status": "bash scripts/manage-sashai-watcher.sh status",
     "sashai:report:status": "node scripts/sashai-report-dispatch.mjs status",
     "sashai:report:verify": "node scripts/verify-sashai-browser-report.mjs --preview",
-    "sashai:temporal:status": "node scripts/sashai-report-temporal.mjs status"
+    "sashai:temporal:status": "node scripts/sashai-report-temporal.mjs status",
+    "sashai:temporal:binding-status": "node scripts/sashai-binding-proof.mjs status",
+    "sashai:temporal:fixture-repair-status": "node scripts/sashai-synthetic-temporal.mjs status repair",
+    "sashai:temporal:fixture-uncertain-status": "node scripts/sashai-synthetic-temporal.mjs status uncertain"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

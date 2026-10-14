@@ -93,7 +93,7 @@ const sourceFilesVerified=[
 const acceptance=Boolean(check.passed&&revisionMatches&&baselineUnchanged&&report&&
   connectorEvidenceValid&&sourceFilesVerified&&attempt.conversationUrl);
 const result={
- taskId:attempt.taskId,chatUrl:attempt.conversationUrl??null,
+ taskId:attempt.taskId,attemptId:attempt.nonce,chatUrl:attempt.conversationUrl??null,
  taskContractSha256:attempt.taskContractSha256,submissionAttempted:true,
  sourceHead:head,baselineHead:attempt.head,revisionMatches,baselineUnchanged,
  baselineEvidenceScope,previousEvidenceWasPartial:!newEvidence,

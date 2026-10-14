@@ -3,6 +3,16 @@
 Date: 2026-10-14
 Owner goal: Leave a manually started ChatGPT project task running; the supervisor watches the same conversation without duplicate prompts, understands its status, independently verifies the task, continues unfinished work in that chat, and creates a new **project-scoped Sashai chat with Desktop Commander** for the next approved item. **Repo Harness is excluded from this active chain.**
 
+## Temporal post-resume binding and fresh synthetic task pilot — 2026-10-15
+
+The historical report workflow now captures an immutable **task/attempt/chat/contract/artifact/send-claim binding before its durable wait**. After resuming, a read-only activity rechecks the current records, runs the independent verifier, and compares a receipt containing **all six identities**, including the attempt ID, with the pre-wait binding. It checks the binding again after verification; any drift blocks approval. A real new Temporal execution (`sashai-report-binding-v2-8f64480c627c2605c58f`) survived a worker restart and finished at `verified_approval_boundary` with no permission for another task. Injected in-memory attempt mismatches were rejected without altering the historical report.
+
+For the **fresh task lifecycle**, a separate Temporal queue (`oracle-sashai-synthetic-report`) drove two disposable, **non-browser** report fixtures. The `repair` run survived a worker restart before its guarded synthetic send, rejected an incomplete report, applied one strictly targeted correction, then independently verified it. The `uncertain` run simulated a timeout after a durable send claim and stopped at `blocked_indeterminate_send`, with no retry or correction. Both work only under ignored `.state/` fixture directories and always deny product/next-task dispatch.
+
+**Boundary:** This proves Temporal orchestration, restart durability, receipt binding, and uncertain-send refusal for synthetic transport. It does **not** prove a fresh connector-selected ChatGPT task or real same-chat correction initiated by Temporal. The next live browser task requires an explicit, bounded report-only contract and acceptance criteria; Sashai product implementation remains blocked by missing active-plan/worktree authority.
+
+[Detailed run IDs, verification, limitations and reproduction commands](SASHAI-TEMPORAL-BINDING-AND-SYNTHETIC-LIFECYCLE-2026-10-15.md).
+
 ## Evidence hardening and Temporal restart proof — 2026-10-15
 
 The report-only task was accepted earlier, but a later independent review identified three gaps: the sender checked only a marker instead of the whole composer, Git evidence omitted staged/untracked content, and Flowdeck did not revalidate acceptance against the active task contract.

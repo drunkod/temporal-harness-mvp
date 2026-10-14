@@ -21,6 +21,14 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 **Important scope:** This is an intentionally narrow proof. The spec compiler is **deterministic**, not an autonomous AI planner. The executor applies an exact file, not a real Codex model invocation. The browser stage generates local **dry-run** sessions; it is not proof of a completed ChatGPT consultation. Temporal is real and persistent, but retry recovery of arbitrary side effects is not yet production-hardened. No real project repositories are modified.
 
+## Temporal bound review and disposable first-task pilot (2026-10-15)
+
+A real new Temporal execution verified the **immutable post-resume task, attempt ID, chat, contract, report path/hash and send claim** after a worker restart. The verifier's receipt now includes the attempt ID and is matched to the pre-wait binding. A swapped attempt ID fails at pre-verification, receipt, and post-verification.
+
+Two new **synthetic-only** Temporal runs then exercised a fresh task lifecycle: `repair` prepared and sent a disposable report, independently rejected a known missing acceptance marker, applied one targeted correction and reverified; `uncertain` injected a lost response after the send claim and safely **blocked without any resend or correction**. The synthetic reports never opened ChatGPT or invoked Desktop Commander. This is an orchestration proof, not a real connector-selected browser dispatch. No Sashai implementation plan is active. See [the execution report](docs/SASHAI-TEMPORAL-BINDING-AND-SYNTHETIC-LIFECYCLE-2026-10-15.md).
+
+Read-only receipts: `node scripts/sashai-binding-proof.mjs status`, `node scripts/sashai-synthetic-temporal.mjs status repair`, and `node scripts/sashai-synthetic-temporal.mjs status uncertain`.
+
 ## Report evidence hardening and Temporal restart proof (2026-10-15)
 
 The approved browser report remains independently accepted, but the supervisor now distinguishes **historical limited evidence** from stronger safeguards required for all new attempts. Both connector-preserving report senders compare the **entire normalized composer payload** before clicking Send, and new attempts bind staged diffs plus hashes of modified/untracked file contents. Flowdeck requires the current contract, persisted attempt, acceptance and report hashes to match before showing current report verification.
