@@ -1,0 +1,26 @@
+{
+  "name": "temporal-harness-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "seed": "npm run build && node dist/seed.js",
+    "worker": "node dist/worker.js",
+    "start": "node dist/cli.js start",
+    "status": "node dist/cli.js status",
+    "list": "node dist/cli.js list",
+    "verify": "node dist/verify.js",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@temporalio/client": "^1.24.0",
+    "@temporalio/worker": "^1.24.0",
+    "@temporalio/workflow": "^1.24.0",
+    "@temporalio/activity": "^1.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
