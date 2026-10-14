@@ -32,6 +32,22 @@ test('a user prompt without a generated answer is waiting, not success', () => {
   assert.equal(waiting.turnState,'awaiting_answer');
 });
 
+test('older assistant replies cannot finish a newer unanswered user turn', () => {
+  const pending=classifyReadOnlyPage({userTurns:2,assistantTurns:1,
+    lastAssistant:'Older completed response',stopVisible:false});
+  assert.equal(pending.turnState,'awaiting_answer');
+  assert.equal(pending.taskState,'unverified');
+});
+
+test('generic busy hint is informational while an empty answer cannot finish a turn', () => {
+  const completed=classifyReadOnlyPage({userTurns:2,assistantTurns:2,
+    lastAssistant:'Completed response',busy:true});
+  assert.equal(completed.turnState,'turn_finished');
+  assert.equal(completed.pageBusyHint,true);
+  assert.equal(classifyReadOnlyPage({userTurns:1,assistantTurns:1,
+    lastAssistant:'  '}).turnState,'awaiting_answer');
+});
+
 test('read-only observer correlates browser evidence independently of failing Oracle metadata',async(t)=>{
   let actual;
   try {actual=await sashaiOverview();}
@@ -112,4 +128,17 @@ test('passive supervisor chooses only a uniquely active Sashai task',()=>{
   assert.equal(chooseAutoAdoptCandidate([{url:a,turnState:'turn_finished'}],a),null);
   assert.deepEqual(chooseAutoAdoptCandidate([{url:a,turnState:'turn_finished'}],null),
     {url:a,reason:'sole_finished_chat'});
+});
+
+test('Work-style collapsed assistant activity uses the latest role heading, not visible text counts',()=>{
+  const finished=classifyReadOnlyPage({userTurns:2,assistantTurns:1,lastRole:'assistant',
+    lastAssistant:'Diagram repair completed',stopVisible:false});
+  assert.equal(finished.turnState,'turn_finished');
+  assert.equal(finished.taskState,'unverified');
+  const waiting=classifyReadOnlyPage({userTurns:2,assistantTurns:6,lastRole:'user',
+    lastAssistant:'Earlier completed review',stopVisible:false});
+  assert.equal(waiting.turnState,'awaiting_answer');
+  const running=classifyReadOnlyPage({userTurns:2,assistantTurns:6,lastRole:'assistant',
+    lastAssistant:'Streaming',stopVisible:true});
+  assert.equal(running.turnState,'running');
 });

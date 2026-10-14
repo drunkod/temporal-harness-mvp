@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { inspectSashaiTaskSource } from './sashai-task-source.js';
+import { readReportReviewStatus } from './sashai-report-status.js';
 
 export const SASHAI_PROJECT_ID = 'g-p-6ab28bdd7fbc8191b581316ff09da79d';
 export const SASHAI_PROJECT_URL = 'https://chatgpt.com/g/' + SASHAI_PROJECT_ID + '/project';
@@ -41,13 +42,18 @@ export async function listSashaiTabs(): Promise<Array<{id: string; url: string; 
 export function classifyReadOnlyPage(raw: {
   title?: string; path?: string; userTurns?: number; assistantTurns?: number;
   stopVisible?: boolean; busy?: boolean; lastAssistant?: string; mainLength?: number;
+  lastRole?: 'user' | 'assistant' | null;
 }) {
   const running = Boolean(raw.stopVisible);
   const userTurns = Math.max(0, raw.userTurns ?? 0);
   const assistantTurns = Math.max(0, raw.assistantTurns ?? 0);
   const lastAssistant = String(raw.lastAssistant ?? '').trim().slice(0, 400);
   const turnState = running ? 'running'
-    : assistantTurns > 0 ? 'turn_finished'
+    : raw.lastRole === 'user' ? 'awaiting_answer'
+    : raw.lastRole === 'assistant' && lastAssistant ? 'turn_finished'
+    : raw.lastRole ? 'unknown'
+    : userTurns > assistantTurns ? 'awaiting_answer'
+    : assistantTurns > 0 && lastAssistant ? 'turn_finished'
     : userTurns > 0 ? 'awaiting_answer' : 'unknown';
   return {
     turnState, taskState: 'unverified',
@@ -64,6 +70,11 @@ async function evaluateTarget(webSocketUrl: string) {
     const stop = [...document.querySelectorAll('button')].some(b =>
       b.getClientRects().length > 0 && (/^stop( generating| response)?$/i.test(
       (b.getAttribute('aria-label') || '').trim()) || b.getAttribute('data-testid') === 'stop-button'));
+    const headings=[...document.querySelectorAll('main h4.sr-only')]
+      .map(h => (h.textContent||'').trim())
+      .filter(s => s === 'You said:' || s === 'ChatGPT said:');
+    const lastRole = headings.at(-1) === 'You said:' ? 'user'
+      : headings.at(-1) === 'ChatGPT said:' ? 'assistant' : null;
     const n = re => (main.match(re) || []).length;
     const assistantMarker = 'ChatGPT said:';
     const i = main.lastIndexOf(assistantMarker);
@@ -72,7 +83,9 @@ async function evaluateTarget(webSocketUrl: string) {
       .split('Latest response')[0].trim();
     return {
       title: document.title, path: location.pathname,
-      userTurns: n(/You said:/g), assistantTurns: n(/ChatGPT said:/g),
+      userTurns: headings.filter(h => h === 'You said:').length || n(/You said:/g),
+      assistantTurns: headings.filter(h => h === 'ChatGPT said:').length || n(/ChatGPT said:/g),
+      lastRole,
       stopVisible: stop, busy: Boolean(document.querySelector('[aria-busy=true]')),
       lastAssistant: last.slice(0,400), mainLength: main.length
     };
@@ -229,7 +242,7 @@ export async function readOracleSmokeEvidence(conversationUrl?: string | null) {
 }
 export async function sashaiOverview() {
   const adopted = await readAdoptedSashai();
-  const [tabList, taskSource] = await Promise.all([listSashaiTabs(), inspectSashaiTaskSource()]);
+  const [tabList, taskSource, reportTask] = await Promise.all([listSashaiTabs(), inspectSashaiTaskSource(), readReportReviewStatus()]);
   const selected = adopted?.url || tabList[0]?.url || null;
   const oracle = await readOracleSmokeEvidence(selected);
   const observation = selected ? await observeSashaiConversation(selected) : null;
@@ -250,5 +263,5 @@ export async function sashaiOverview() {
   return { project: 'dr/sashai', oracle: oraclePublic, adopted: adopted ?? null,
     observation, independentlyObservedAnswer, tabCount: tabList.length,
     status: observation?.turnState || 'no_adopted_chat',
-    taskState: 'unverified', taskSource, checkedAt: new Date().toISOString() };
+    taskState: 'unverified', taskSource, reportTask, checkedAt: new Date().toISOString() };
 }

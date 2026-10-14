@@ -4,6 +4,7 @@ import {
   listSashaiTabs, adoptSashaiConversation, autoAdoptSashai, sashaiOverview,
   parseSashaiChatUrl, SASHAI_PROJECT_URL
 } from '../dist/sashai-observer.js';
+import { previewSashaiContinuation } from '../dist/sashai-dispatch-preview.js';
 
 const [action='status', ...args]=process.argv.slice(2);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -55,12 +56,18 @@ try{
         oracleStatus:snapshot.oracle?.oracleStatus,run:i+1});
       if(i<count-1)await sleep(2000);
     }
+  }else if(action==='preview'){
+    const snapshot=await sashaiOverview();
+    output(previewSashaiContinuation({
+      taskSource:snapshot.taskSource, observation:snapshot.observation,
+      previousAttempt:'unknown', connectorPreservingTransportVerified:false,
+    }));
   }else if(action==='status'){
     output(await sashaiOverview());
   }else if(action==='tabs'){
     output(await listSashaiTabs());
   }else{
-    console.error('Usage: node scripts/sashai-supervisor.mjs doctor|tabs|adopt [Sashai-URL]|auto-adopt|supervise [count|forever]|status|watch [count]');
+    console.error('Usage: node scripts/sashai-supervisor.mjs doctor|tabs|adopt [Sashai-URL]|auto-adopt|supervise [count|forever]|status|preview|watch [count]');
     process.exitCode=2;
   }
 }catch(error){console.error('Supervisor probe error:',error.message);process.exitCode=1;}

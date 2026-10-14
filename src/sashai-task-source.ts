@@ -1,5 +1,6 @@
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { resolve, join, relative, isAbsolute, sep } from 'node:path';
+import { createHash } from 'node:crypto';
 
 export type PlanGateStatus =
   'no_active_plan' | 'missing_contract' | 'invalid_plan_marker' |
@@ -14,6 +15,7 @@ export type PlanGate = {
   activePlan: string | null;
   owner: string | null;
   pendingCount: number;
+  planSha256: string | null;
   tasks: string[];
   dispatchAllowed: false;
   reason: string;
@@ -54,9 +56,9 @@ export async function inspectSashaiTaskSource(repo = defaultRepo): Promise<PlanG
   const checkedAt = new Date().toISOString();
   const result = (status: PlanGateStatus, reason: string,
     activePlan: string | null = null, owner: string | null = null,
-    tasks: string[] = []): PlanGate => ({
+    tasks: string[] = [], planSha256: string | null = null): PlanGate => ({
       status, repository: root, activePlan, owner,
-      pendingCount: tasks.length, tasks: tasks.slice(0,20), dispatchAllowed:false,
+      pendingCount: tasks.length, planSha256, tasks: tasks.slice(0,20), dispatchAllowed:false,
       reason, checkedAt,
     });
   const contract = await stat(join(root,'AGENTS.md')).catch(() => null);
@@ -82,10 +84,11 @@ export async function inspectSashaiTaskSource(repo = defaultRepo): Promise<PlanG
   const owner = await realpath(resolve(root,worktree)).catch(() => null);
   if (owner !== root) return result('wrong_worktree','Active task belongs to another worktree',marker,owner||worktree);
   const text = await readFile(actual,'utf8');
+  const planSha256 = createHash('sha256').update(text).digest('hex');
   const items = taskBreakdownItems(text);
   if (!items) return result('invalid_task_breakdown','Plan must contain exactly one ## Task Breakdown',marker,owner);
   if (items.length === 0) return result('approved_plan_no_pending_tasks',
-    'No unchecked task rows in the approved plan; completion still requires independent acceptance',marker,owner);
+    'No unchecked task rows in the approved plan; completion still requires independent acceptance',marker,owner,[],planSha256);
   return result('approved_plan_has_pending_tasks',
-    'Approved plan contains unchecked items, but dispatch remains disabled until explicit task binding and verification',marker,owner,items);
+    'Approved plan contains unchecked items, but dispatch remains disabled until explicit task binding and verification',marker,owner,items,planSha256);
 }

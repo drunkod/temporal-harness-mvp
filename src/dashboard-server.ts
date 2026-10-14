@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { Connection, Client } from '@temporalio/client';
 import { roamingMvp, statusQuery } from './workflows.js';
 import { sashaiOverview, listSashaiTabs, adoptSashaiConversation } from './sashai-observer.js';
+import { readReportReviewStatus, browserReportPath } from './sashai-report-status.js';
 
 const exec = promisify(execFile);
 const base = resolve(process.cwd());
@@ -102,6 +103,14 @@ const server = createServer(async (req: IncomingMessage, res: ServerResponse) =>
     }
     if (req.method === 'GET' && url.pathname === '/api/sashai/status') {
       json(res, 200, await sashaiOverview()); return;
+    }
+    if (req.method === 'GET' && url.pathname === '/api/sashai/report') {
+      const report=await readReportReviewStatus();
+      if (!report?.reportReady) {json(res,409,{error:'Report not independently verified or changed since verification'});return;}
+      const markdown=await readFile(browserReportPath,'utf8');
+      res.writeHead(200,{'Content-Type':'text/markdown; charset=utf-8','Cache-Control':'no-store',
+        'X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"});
+      res.end(markdown);return;
     }
     if (req.method === 'GET' && url.pathname === '/api/sashai/tabs') {
       json(res, 200, { tabs: await listSashaiTabs() }); return;

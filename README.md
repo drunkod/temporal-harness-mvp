@@ -25,7 +25,7 @@ Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
 
 The active CLI is the isolated, unmodified Oracle **0.21.5** (`npm run oracle:pin`); the global Homebrew Oracle 0.21.3 is untouched. Live new-chat and same-chat followup tests completed with accurate saved responses. A read-only background watcher (`scripts/manage-sashai-watcher.sh status|start|stop`) may adopt exactly one active Sashai chat; it never dispatches work.
 
-The live homepage at **http://127.0.0.1:4319/** now displays the Sashai project conversation, **read-only adoption**, the current ChatGPT turn status and independently observed Oracle answer evidence. The active integration uses **Oracle CLI + Helium Profile 4 CDP** without Repo Harness. The earlier two-fixture workflow is retained as historical evidence, but its `POST /api/start` launcher is disabled with HTTP 410. No automatic Sashai task submission or Desktop Commander connector selection is claimed yet.
+The live homepage at **http://127.0.0.1:4319/** now displays the Sashai project conversation, **read-only adoption**, the current ChatGPT turn status and independently observed Oracle answer evidence. The active integration uses **Oracle CLI + Helium Profile 4 CDP** without Repo Harness. The earlier two-fixture workflow is retained as historical evidence, but its `POST /api/start` launcher is disabled with HTTP 410. One **approved report-only** browser task was submitted and verified through Desktop Commander; there is still no general unattended Sashai implementation task dispatcher.
 
 ```bash
 cd ~/Documents/work/temporal-harness-mvp

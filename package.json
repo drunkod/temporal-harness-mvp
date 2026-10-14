@@ -15,13 +15,16 @@
     "dashboard": "node dist/dashboard-server.js",
     "demo": "npm run build && node dist/dashboard-server.js",
     "sashai:status": "node scripts/sashai-supervisor.mjs status",
+    "sashai:preview": "npm run build && node scripts/sashai-supervisor.mjs preview",
     "sashai:adopt": "node scripts/sashai-supervisor.mjs adopt",
     "oracle:doctor": "node scripts/oracle-sashai.mjs doctor",
     "oracle:pin": "node scripts/prepare-oracle-local.mjs",
     "oracle:diagnose": "node scripts/oracle-sashai.mjs diagnose",
     "sashai:auto-adopt": "node scripts/sashai-supervisor.mjs auto-adopt",
     "sashai:supervise": "node scripts/sashai-supervisor.mjs supervise forever",
-    "sashai:watcher-status": "bash scripts/manage-sashai-watcher.sh status"
+    "sashai:watcher-status": "bash scripts/manage-sashai-watcher.sh status",
+    "sashai:report:status": "node scripts/sashai-report-dispatch.mjs status",
+    "sashai:report:verify": "node scripts/verify-sashai-browser-report.mjs --preview"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

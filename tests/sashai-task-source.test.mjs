@@ -34,6 +34,11 @@ test('active plan resolver is read-only and refuses missing, archived, foreign a
   assert.equal(c.pendingCount,2);
   assert.equal(c.dispatchAllowed,false,'Even approved tasks need a separate execution gate');
   assert.equal(c.tasks[0],'Implement accepted task');
+  assert.match(c.planSha256,/^[a-f0-9]{64}$/);
+  await writeFile(plan,'# Approved Plan\n## Task Breakdown\n- [ ] Updated task\n');
+  const revised=await inspectSashaiTaskSource(root);
+  assert.notEqual(revised.planSha256,c.planSha256);
+  assert.equal(revised.dispatchAllowed,false);
   await writeFile(join(marker,'active-worktree'),join(tmpdir(),'someone-else')+'\n');
   assert.equal((await inspectSashaiTaskSource(root)).status,'wrong_worktree');
   await writeFile(join(marker,'active-plan'),'plans/archive/old.md\n');

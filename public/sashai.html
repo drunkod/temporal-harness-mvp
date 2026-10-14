@@ -26,6 +26,8 @@
  <div class="kv"><span class="key">Генерация</span><span id="generation" class="val">—</span></div>
  <div class="kv"><span class="key">Passive observer</span><span class="val success">Read-only · never sends prompts</span></div>
  <div class="kv"><span class="key">Approved active plan</span><span id="planState" class="val warning">Checking…</span></div>
+ <div class="kv"><span class="key">One-off architecture report</span><span id="reviewTask" class="val">Checking…</span></div>
+ <p id="reviewLink" style="margin-top:8px;font-size:12px"></p>
  <div class="head" style="padding:22px 0 12px"><h2>Последний видимый ответ</h2><span class="small">Без интерпретации завершения задачи</span></div>
  <div id="preview" class="trace">Ожидаем загрузки чата…</div>
  <p style="margin-top:13px;font-size:12px" id="linkbox"></p>
@@ -76,6 +78,10 @@
    const plan=s.taskSource||{};
    $('planState').textContent=plan.status==='no_active_plan'?'Not selected — execution paused':plan.status==='approved_plan_has_pending_tasks'?'Plan selected — verification required':(plan.status||'Unavailable').replaceAll('_',' ');
    $('planState').title=plan.reason||'';
+   const report=s.reportTask||null;
+   $('reviewTask').textContent=report?.status==='verified_report'?'Verified independently':report?'Submitted — awaiting verification':'No report task';
+   $('reviewTask').className=report?.status==='verified_report'?'val success':'val warning';
+   $('reviewLink').innerHTML=report?.reportReady?'<a class="link" href="/api/sashai/report" target="_blank" rel="noopener">View verified Sashai architecture report ↗</a>':'';
    $('preview').textContent=o.lastAssistant||'Нет подтверждённого ответа в открытом окне.';
    $('linkbox').innerHTML=(o.url||s.adopted?.url)?'<a class="link" target="_blank" rel="noopener" href="'+esc(o.url||s.adopted.url)+'">Открыть наблюдаемый чат ↗</a>':'';
    const oracle=s.oracle||{};

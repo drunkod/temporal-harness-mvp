@@ -3,6 +3,23 @@
 Date: 2026-10-14
 Owner goal: Leave a manually started ChatGPT project task running; the supervisor watches the same conversation without duplicate prompts, understands its status, independently verifies the task, continues unfinished work in that chat, and creates a new **project-scoped Sashai chat with Desktop Commander** for the next approved item. **Repo Harness is excluded from this active chain.**
 
+## First supervised report task verified — 2026-10-15
+
+**Report-only task accepted:** The owner-approved Sashai architecture review was dispatched exactly once in Helium Profile 4 to a fresh `dr/sashai` ChatGPT chat with **Remote Desktop Commander selected in the composer**. This was a source-backed report task, not implementation of the Sashai roadmap, and it did **not** activate an execution plan.
+
+- **Report chat:** https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/6acfe3ee-ad30-83eb-b92e-fa069ac9ee6e
+- **Approved contract:** [SASHAI-ARCHITECTURE-REVIEW-TASK.md](SASHAI-ARCHITECTURE-REVIEW-TASK.md) (immutable snapshot; initial NOT DISPATCHED status was correct when created).
+- **Independent reference:** [SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md), created directly through repository tools.
+- **Browser-produced and independently accepted report:** [SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md), 205 lines, 22,623 bytes, SHA-256 `4637e824aa9b2b2ac865c93b1a9040a1b21f86e539e3253a00cb4ece36f14ba0`.
+- **Execution receipt:** [SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md) and ignored local `.state/report-review-dispatch/acceptance.json`.
+- **Live evidence:** the passive watcher auto-adopted the running chat as `single_running_chat`; local Desktop Commander history independently shows `write_file` for the exact report at 01:26:41 and `edit_block` at 01:30:28 local time. A *separate guarded same-chat correction* removed inline HTML breaks from Mermaid diagrams; no blind prompt replay occurred.
+- **Verifier:** 16 content requirements passed, all required source paths exist at HEAD, exact Git SHA unchanged (`7d2cc6818afe837119e0c171928506b1c4967269`), full Sashai status and tracked diff fingerprints unchanged, tool-history binding confirmed; status `verified_report` with no outstanding acceptance failures.
+- **Flowdeck:** read-only `/api/sashai/status` now contains separate `reportTask.status`, and `/api/sashai/report` displays only the SHA-verified Markdown. The product task state remains `unverified`, the active-plan gate remains `no_active_plan`, and generalized automated task dispatch is **disabled**.
+
+**Limitation:** Work-style ChatGPT UI hides some initiating prompt content, so this attempt's chat binding is based on immutable CDP tab ID, exact project, source repository/revision, one-time send guard and resulting report marker; direct on-page prompt-marker confirmation was unavailable. The report task demonstrates a guarded one-off connector-selected sender, not a crash-proof Temporal agent or readiness for arbitrary repository implementation.
+
+**Next architectural stage:** persist generic task-to-chat claims, independently validate approved task/acceptance contracts, identify completion reliably across Work-style chat layouts, add Temporal orchestration and a verified next-project-chat transition. Separate owner approval of the next product milestone is required; do not auto-select the completed W1–W7 plan, deferred goals or research drafts.
+
 ## Browser-origin Sashai chat and Desktop Commander — 2026-10-14
 
 **Manual browser creation plus connector invocation:** A new project-scoped Sashai chat (`6acfca8f-34cc-83eb-aaa9-fbd1301247d4`) was created in a dedicated Helium Profile 4 window through the ChatGPT UI, not Oracle. The main browser process was reused. Remote Desktop Commander was selected from the composer app menu and one guarded, strictly read-only check of the MVP folder was submitted. ChatGPT's expanded activity independently showed **“Listed devices and retrieved file metadata”**. This proves tool invocation for a harmless check; it does **not** prove a real repository implementation task.
@@ -130,6 +147,58 @@ The above commands never send a ChatGPT prompt. Browser requests `GET /api/sasha
 For a NEW prompt via Oracle (potential browser UI side effect; never replay blindly), use `node scripts/oracle-sashai.mjs preview 'Your task'` first. Oracle 0.21.5 capture is proven for the two harmless Sashai test prompts. Real Desktop Commander task dispatch remains disabled pending separate connector selection and task-evidence gates.
 
 Read-only background observer: `scripts/manage-sashai-watcher.sh status` (or `start|stop`); logs are ignored under `.state/oracle-sashai/`.
+
+## Review and next safe increment — 2026-10-15
+
+Reviewed commit a6c8cce with Codegraph and reran the existing suite: all 26 baseline tests passed. The live integration tests primarily read previously saved smoke evidence; they do not launch a new implementation task or establish a production connector-aware continuation sender.
+
+### Changes made after review
+
+- Fixed read-only turn classification: an older assistant response must not mark a newer unanswered user turn finished; empty assistant text cannot establish completion.
+- Generic page-wide aria-busy is informational. A read-only live check showed it remains true on the completed two-user/two-assistant smoke, so it is not used as a generation veto.
+- Active-plan inspection now includes a SHA-256 of the actual plan contents for binding/revision checks. This does not approve/select a plan or enable dispatch.
+- Added src/sashai-dispatch-preview.ts: pure, non-mutating continuation proposal gate. It requires an observable finished Sashai chat, explicit current task/checkpoint/remaining steps, matching pending source item and plan revision, acceptance checks, verified connector-preserving transport and prior-attempt reconciliation.
+- Every preview result remains executionEnabled=false and submitsMessages=false, including an eligible proposal. No browser calls or claims are made by the preview function.
+- Added npm run sashai:preview. It reads current observation/plan state and reports blockers; it does not fabricate a task binding, transport proof or empty attempt journal. The live command therefore cannot produce/send a continuation merely because a chat turn finished.
+
+### Remaining review findings
+
+1. The active plan's first lines check AGENTS.md existence and explicit markers, not a general workflow-contract parser. Pending checklist text alone is not task binding, dependency approval or acceptance criteria. Do not enable dispatch by flipping dispatchAllowed.
+2. Current observation uses English rendered-text counts and a Stop-control heuristic; it lacks stable message/turn identities and a cross-probe response-stability baseline. Current finished-turn inference is suitable as observation, not sufficient authority for unattended submission.
+3. Oracle/browser response equality uses a 400-character browser excerpt. Longer real responses cannot reliably correlate through this smoke-oriented comparison. Add private full-response digest/length or bounded full capture with explicit truncation before using it for actual task decisions.
+4. Session discovery filters names containing sashai and reads at most 100 entries before sorting. Move to explicit per-attempt conversation/session references; generic or later sessions may otherwise be missed.
+5. The smoke's selected-connector evidence does not prove Oracle preserves connector selection in task turns. The canonical plan notes Oracle clears composer mentions. A production sender must revalidate project/chat, selected connector, exact task prompt and write-ahead attempt immediately before one send, then reconcile afterward.
+6. Resolved by owner on 2026-10-15: remove Repo Harness from the active supervisor chain and retain Oracle. The earlier Repo Harness command requirement is superseded. Retain Sashai's own workflow metadata and historical fixture evidence; no repository deletion is implied.
+
+### Continue in this order
+
+1. **Completed as a one-off report-only gate:** owner-approved Sashai architectural review was dispatched through a single-task connector-preserving browser sender and independently accepted. See the verified execution receipt. This does not select an old completed Sashai plan or authorize arbitrary source changes.
+2. Generalize the demonstrated connector-selected UI sender into a task-bound adapter and journal, testing in synthetic/disposable fixtures first. Guard preservation of composer selection; Oracle text-only capture/continuation is a different capability.
+3. Add independent acceptance results and stable turn/session correlation; test uncertain send, owner draft changes, stale plan revision, duplicate worker decisions and long response capture.
+4. Wire the prepared observe/continue/verify/new-project-chat state machine into Temporal, with per-chat/task claims, no blind send retries and bounded continuation budgets.
+5. Rehearse one approved harmless task/checkpoint -> same-chat connector invocation -> verified result -> source checklist update -> new Sashai project chat. Only then enable repeated real task execution.
+
+Read-only preparation command:
+
+```bash
+npm run sashai:preview
+```
+
+This increment does not install packages, change global Oracle, select a Sashai plan, restart browser/services, submit a message, perform task acceptance, or enable autonomous execution. New source/test changes require the usual service reload when the owner chooses to deploy them; no running service was restarted during review.
+
+## Approved practical task and Oracle-only decision — 2026-10-15
+
+The owner explicitly confirmed Oracle stays and Repo Harness leaves the active supervisor runtime. Do not delete the Repo Harness repository/package, erase Sashai .ai/harness policy, or remove historical fixture code as a side effect of this architecture decision. Sashai's declared source-of-truth rules remain relevant.
+
+Approved next task: architectural/current-work review of Sashai, including repository guide, recent commit timeline, source-backed diagrams and a report. It is report-only, not implementation of the product roadmap.
+
+- Scope/task contract: [SASHAI-ARCHITECTURE-REVIEW-TASK.md](SASHAI-ARCHITECTURE-REVIEW-TASK.md).
+- Independent reference review completed through direct repository tools: [SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md).
+- Browser-produced output: **dispatched and verified subsequently** — [SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md). See the execution receipt above.
+- Reviewed Sashai HEAD: 7d2cc6818afe837119e0c171928506b1c4967269. Latest delivered slice is the four-area shell; spec labels and uncommitted research/priority overrides need reconciliation.
+- Both active execution markers remain absent; existing Sashai dirty documentation and research artifacts were left untouched.
+
+The independent reference review is not evidence of ChatGPT/Desktop Commander task execution. It provided the grounded baseline for the **subsequent** browser-produced report, whose tool invocation and independent acceptance are now recorded in the first verified report section. The initial planning/review step itself did not submit a prompt.
 
 ## Historical project note
 
