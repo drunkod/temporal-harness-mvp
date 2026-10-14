@@ -39,19 +39,15 @@ test('read-only observer correlates browser evidence independently of failing Or
   assert.equal(actual.project,'dr/sashai');
   assert.equal(actual.taskState,'unverified');
   if(actual.observation?.browser==='attached_read_only' && actual.oracle?.conversationUrl===actual.observation.url){
-    assert.ok([
-      '6acfb5c5-ea98-83ed-a041-da6cb6e3814b',
-      '6acfbc18-4c98-83ed-b711-a5a8e9efb121',
-      '6acfc4f3-2cdc-83eb-8e4a-c8a955ce7fb0',
-    ].includes(actual.observation.conversationId));
+    assert.equal(parseSashaiChatUrl(actual.observation.url).conversationId,
+      actual.observation.conversationId);
     assert.equal(actual.observation.turnState,'turn_finished');
     assert.equal(actual.independentlyObservedAnswer,true);
-    if(actual.observation.conversationId==='6acfc4f3-2cdc-83eb-8e4a-c8a955ce7fb0'){
+    if(actual.oracle.oracleStatus==='error'){
+      assert.ok(actual.oracle.captureError);
+    }else{
       assert.equal(actual.oracle.oracleStatus,'completed');
       assert.equal(actual.oracle.captureError,null);
-    }else{
-      assert.equal(actual.oracle.oracleStatus,'error');
-      assert.ok(actual.oracle.captureError);
     }
   }
 });

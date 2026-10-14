@@ -40,6 +40,10 @@ scripts/open-helium-profile4.sh
 
 Read-only Oracle browser diagnostics: `node scripts/oracle-sashai.mjs diagnose flowdeck-sashai-oracle-live-cdp`. See [root-cause report](docs/ORACLE-PROMPT-COMMIT-RCA.md). Oracle **0.21.5 now captures answers and same-chat followups** in live Sashai smoke tests. Legacy 0.21.3 sessions must not be blindly replayed.
 
+**New live browser-origin integration proof:** Desktop Commander was selected in a fresh Sashai project chat, invoked read-only (ChatGPT activity: “Listed devices and retrieved file metadata”), adopted by the watcher while running, then continued in the SAME conversation by Oracle 0.21.5 `--browser-tab`. The watcher and dashboard remain non-sending. An explicit read-only active-plan resolver reports **no approved active plan**, so actual tasks must not auto-start. Test and design evidence: [canonical plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md).
+
+The one-shot test helper `scripts/ui-sashai-plugin-smoke.mjs` is for diagnosing this specific 2026-10-14 harmless smoke; its persistent send guard intentionally refuses repeat submissions. Do not use it to dispatch production tasks.
+
 See [the canonical Oracle Sashai plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md) and [Sashai user journey](docs/SASHAI-SUPERVISOR-JOURNEY.md). Prior Repo Harness integration in `src/activities.ts` remains isolated in the legacy fixture and is **not** part of the active Sashai supervisor.
 
 ## Live browser dashboard (now implemented)

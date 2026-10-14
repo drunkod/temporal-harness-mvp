@@ -24,20 +24,21 @@
  <div class="kv"><span class="key">Chat ID</span><span id="conversation" class="val">—</span></div>
  <div class="kv"><span class="key">Источник</span><span id="source" class="val">Helium CDP · только чтение</span></div>
  <div class="kv"><span class="key">Генерация</span><span id="generation" class="val">—</span></div>
- <div class="kv"><span class="key">Действия с чатом</span><span class="val success">Только наблюдение · 0 отправок</span></div>
+ <div class="kv"><span class="key">Passive observer</span><span class="val success">Read-only · never sends prompts</span></div>
+ <div class="kv"><span class="key">Approved active plan</span><span id="planState" class="val warning">Checking…</span></div>
  <div class="head" style="padding:22px 0 12px"><h2>Последний видимый ответ</h2><span class="small">Без интерпретации завершения задачи</span></div>
  <div id="preview" class="trace">Ожидаем загрузки чата…</div>
  <p style="margin-top:13px;font-size:12px" id="linkbox"></p>
  <div class="note">Существующие задачи Sashai берутся из <strong>утверждённого плана → Task Breakdown</strong>. <code>tasks/current.md</code> — только снимок, <code>tasks/todos.md</code> — отложенные цели. Автозапуск без определения активного плана отключён.</div>
 </div></section>
 <aside>
- <section class="panel"><div class="head"><h2>Oracle CLI · независимая проверка</h2><span class="small">0.21.3</span></div><div class="pad">
+ <section class="panel"><div class="head"><h2>Oracle CLI · independent check</h2><span class="small">0.21.5</span></div><div class="pad">
    <div class="step"><div class="stepnum">1</div><div><strong>Создание разговора в Sashai</strong><span id="oracleSent">Считываем сохранённую Oracle-сессию…</span></div></div>
    <div class="step"><div class="stepnum">2</div><div><strong>Ответ в браузере</strong><span id="oracleEvidence">Ожидаем наблюдение…</span></div></div>
    <div class="step"><div class="stepnum">3</div><div><strong>Внутренняя фиксация Oracle</strong><span id="oracleState">—</span></div></div>
    <div class="kv"><span class="key">Последняя проверка</span><span id="updated" class="val">—</span></div>
    <div class="kv"><span class="key">Открытых вкладок Sashai</span><span id="tabCount" class="val">—</span></div>
-   <div class="note"><strong>Независимые статусы:</strong> ошибка Oracle <code>prompt-commit-timeout</code> не опровергает ответ, реально появившийся в ChatGPT. Но успешный ответ не доказывает, что Desktop Commander исполнил задачу.</div>
+   <div class="note"><strong>Different evidence levels:</strong> a completed Oracle turn and a captured ChatGPT answer do not independently verify a repository task. Old Oracle 0.21.3 timeouts remain historical evidence; new sessions use 0.21.5.</div>
  </div></section>
  <section class="panel" style="margin-top:16px"><div class="head"><h2>События наблюдателя</h2><span class="small">Обновление каждые 2 с</span></div><div class="pad"><div id="events" class="events"><div class="event">Запуск наблюдения…</div></div></div></section>
 </aside>
@@ -72,11 +73,14 @@
    $('userCount').textContent=o.userTurns??'—';$('assistantCount').textContent=o.assistantTurns??'—';
    $('conversation').textContent=o.conversationId||s.adopted?.conversationId||'—';
    $('generation').textContent=o.generationStopVisible?'Активна':'Не обнаружена';
+   const plan=s.taskSource||{};
+   $('planState').textContent=plan.status==='no_active_plan'?'Not selected — execution paused':plan.status==='approved_plan_has_pending_tasks'?'Plan selected — verification required':(plan.status||'Unavailable').replaceAll('_',' ');
+   $('planState').title=plan.reason||'';
    $('preview').textContent=o.lastAssistant||'Нет подтверждённого ответа в открытом окне.';
    $('linkbox').innerHTML=(o.url||s.adopted?.url)?'<a class="link" target="_blank" rel="noopener" href="'+esc(o.url||s.adopted.url)+'">Открыть наблюдаемый чат ↗</a>':'';
    const oracle=s.oracle||{};
    $('oracleSent').textContent=oracle.promptSubmitted?'Oracle записал отправку запроса в Sashai.':'Нет подтверждённой отправки.';
-   $('oracleEvidence').textContent=s.independentlyObservedAnswer?'✓ В UI подтверждён ответ '+(oracle.expectedAnswer||'Oracle')+'.':'Ответ пока не сопоставлен с сохранённой тестовой сессией.';
+   $('oracleEvidence').textContent=s.independentlyObservedAnswer?'✓ Oracle capture matches the actual ChatGPT response.':'Oracle capture has not yet been reconciled with the browser.';
    $('oracleEvidence').className=s.independentlyObservedAnswer?'success':'warning';
    $('oracleState').textContent=(oracle.oracleStatus||'нет данных')+(oracle.captureError?' · '+oracle.captureError:'');
    $('oracleState').className=oracle.oracleStatus==='error'?'error':'';

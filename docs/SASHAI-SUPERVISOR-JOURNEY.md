@@ -1,7 +1,7 @@
 # Sashai — autonomous ChatGPT project supervisor journey
 
 Date: 2026-10-14
-Status: target journey. **Oracle 0.21.5 creates new Sashai chats and continues an Oracle-created chat successfully; CDP passive observation and guarded automatic adoption are implemented.** Continuation of arbitrary manually started chats, Desktop Commander connector selection, task verification and autonomous next-task dispatch remain unimplemented.
+Status: target journey. **Oracle 0.21.5 creates new Sashai chats and continues an Oracle-created chat successfully; CDP passive observation and guarded automatic adoption are implemented.** One browser-originated manual-chat smoke was adopted while active, invoked Desktop Commander and was successfully continued by Oracle 0.21.5. Production connector preselection in an Oracle-created next-task chat, task verification and autonomous next-task dispatch remain unimplemented.
 Current implementation plan: [ORACLE-SASHAI-SUPERVISOR-PLAN.md](ORACLE-SASHAI-SUPERVISOR-PLAN.md).
 
 ## 1. What the owner does
@@ -52,7 +52,9 @@ Proposed instruction shape:
 
 > Continue the existing Sashai task using Desktop Commander on my MacBook. Follow AGENTS.md and the resolved active plan's Task Breakdown. Resume from the recorded checkpoint. Finish these specific remaining steps and run the missing acceptance checks. Do not start an unrelated task. Return current task, work completed, verification evidence, remaining work and blockers.
 
-**Verified:** unmodified Oracle 0.21.5 successfully used `--followup` on a previously completed Oracle-created Sashai conversation (both sessions have identical conversation ID). The earlier 0.21.3 prompt-commit-timeout session still does not qualify; same-chat continuation of an **adopted manually started** chat remains unproven. Each attempt is journaled; same-chat concurrent submissions and duplicate continuation are prevented. Small turn/time budgets and no-progress detection pause runaway work.
+**Verified:** unmodified Oracle 0.21.5 completed `--followup` on an Oracle-created Sashai chat **and** used `--browser-tab` to attach to and continue a browser-created Sashai chat with the original conversation ID preserved. The earlier 0.21.3 prompt-commit-timeout sessions still must not be replayed. Production orchestration of many arbitrary manually started chats remains gated by task authority, tool selection and idempotent execution. Each attempt is journaled; same-chat concurrent submissions and duplicate continuation are prevented. Small turn/time budgets and no-progress detection pause runaway work.
+
+**Transport ownership:** A Desktop Commander app selection is a composer token. Oracle 0.21.5 clears the composer before its own prompt insertion, so preselecting the app and then sending via unmodified Oracle may discard the connector. The harmless browser smoke used ChatGPT's tool selection and send UI with a one-shot guard. Oracle then successfully continued a later text-only turn via `--browser-tab`. Automated tool-using continuations must use a separately verified connector-selection/dispatch adapter, not assume Oracle preserves preselected mentions.
 
 ### E. Verify and update the right task source
 

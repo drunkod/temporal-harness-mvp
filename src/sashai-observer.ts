@@ -1,6 +1,7 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
+import { inspectSashaiTaskSource } from './sashai-task-source.js';
 
 export const SASHAI_PROJECT_ID = 'g-p-6ab28bdd7fbc8191b581316ff09da79d';
 export const SASHAI_PROJECT_URL = 'https://chatgpt.com/g/' + SASHAI_PROJECT_ID + '/project';
@@ -176,31 +177,59 @@ export async function autoAdoptSashai() {
 }
 
 export async function readOracleSmokeEvidence(conversationUrl?: string | null) {
-  const sessions = [];
-  for (const known of observedOracleSmokes) {
+  // Read-only correlation of all relevant saved Oracle sessions, NOT merely a list of
+  // smoke-test slugs. Never inspect sessions outside the Sashai project or log prompts.
+  const root = join(homedir(), '.oracle', 'sessions');
+  const entries = await readdir(root, { withFileTypes: true }).catch(() => []);
+  const knownExpected = new Map(observedOracleSmokes.map(x => [x.slug, x.expected]));
+  const sessions = await Promise.all(entries.filter(x =>
+    x.isDirectory() && /^[a-z0-9_-]{5,110}$/i.test(x.name) &&
+    /sashai/i.test(x.name)).slice(0, 100).map(async entry => {
     try {
-      const path = join(homedir(), '.oracle', 'sessions', known.slug, 'meta.json');
-      const meta = JSON.parse(await readFile(path, 'utf8')) as {
-        status?: string; errorMessage?: string;
-        browser?: {runtime?: {tabUrl?: string; promptSubmitted?: boolean}};
+      const meta = JSON.parse(await readFile(join(root, entry.name, 'meta.json'), 'utf8')) as {
+        status?: string; errorMessage?: string; completedAt?: string; startedAt?: string; createdAt?: string;
+        browser?: {runtime?: {tabUrl?: string; conversationId?: string; promptSubmitted?: boolean}};
         error?: {details?: {code?: string}};
       };
       const runtime = meta.browser?.runtime;
-      sessions.push({
-        slug: known.slug, expectedAnswer: known.expected,
+      if (!runtime?.tabUrl) return null;
+      const chat = parseSashaiChatUrl(runtime.tabUrl);
+      if (runtime.conversationId && runtime.conversationId !== chat.conversationId) return null;
+      if (conversationUrl && chat.url !== conversationUrl) return null;
+      let expectedAnswer: string | null = knownExpected.get(entry.name) ?? null;
+      // The native transcript is Oracle's capture evidence, not proof of task completion.
+      // Limit file size and do not expose the saved transcript to the status API.
+      if (meta.status === 'completed' && runtime.promptSubmitted) {
+        const transcriptPath = join(root, entry.name, 'artifacts', 'transcript.md');
+        const info = await stat(transcriptPath).catch(() => null);
+        if (info && info.size <= 262144) {
+          const text = await readFile(transcriptPath, 'utf8');
+          const marker = '\n## Answer\n';
+          const pos = text.lastIndexOf(marker);
+          if (pos >= 0) {
+            const captured = text.slice(pos + marker.length).trim();
+            if (captured && captured.length <= 8000) expectedAnswer = captured;
+          }
+        }
+      }
+      return {
+        slug: entry.name,
+        expectedAnswer,
         oracleStatus: meta.status || 'unknown',
-        promptSubmitted: Boolean(runtime?.promptSubmitted),
-        conversationUrl: runtime?.tabUrl || null,
+        promptSubmitted: Boolean(runtime.promptSubmitted),
+        conversationUrl: chat.url,
         captureError: meta.error?.details?.code || (meta.errorMessage || '').slice(0, 115) || null,
-      });
-    } catch { /* absent session */ }
-  }
-  return conversationUrl ? sessions.find(s => s.conversationUrl === conversationUrl) || null
-    : sessions[0] || null;
+        recordedAt: meta.completedAt || meta.startedAt || meta.createdAt || '',
+      };
+    } catch { return null; }
+  }));
+  const valid = sessions.filter((s): s is NonNullable<typeof s> => s !== null);
+  valid.sort((a,b) => b.recordedAt.localeCompare(a.recordedAt));
+  return valid[0] || null;
 }
 export async function sashaiOverview() {
   const adopted = await readAdoptedSashai();
-  const tabList = await listSashaiTabs();
+  const [tabList, taskSource] = await Promise.all([listSashaiTabs(), inspectSashaiTaskSource()]);
   const selected = adopted?.url || tabList[0]?.url || null;
   const oracle = await readOracleSmokeEvidence(selected);
   const observation = selected ? await observeSashaiConversation(selected) : null;
@@ -211,8 +240,15 @@ export async function sashaiOverview() {
     observation.lastAssistant.trim() === oracle?.expectedAnswer &&
     oracle?.promptSubmitted && oracle.conversationUrl === selected
   );
-  return { project: 'dr/sashai', oracle, adopted: adopted ?? null,
+  // Return only metadata: the full saved Oracle transcript must not leak into
+  // Flowdeck's JSON response. The backend uses it solely for exact equality.
+  const oraclePublic = oracle ? {
+    slug: oracle.slug, oracleStatus: oracle.oracleStatus,
+    promptSubmitted: oracle.promptSubmitted, conversationUrl: oracle.conversationUrl,
+    captureError: oracle.captureError, recordedAt: oracle.recordedAt,
+  } : null;
+  return { project: 'dr/sashai', oracle: oraclePublic, adopted: adopted ?? null,
     observation, independentlyObservedAnswer, tabCount: tabList.length,
     status: observation?.turnState || 'no_adopted_chat',
-    taskState: 'unverified', checkedAt: new Date().toISOString() };
+    taskState: 'unverified', taskSource, checkedAt: new Date().toISOString() };
 }

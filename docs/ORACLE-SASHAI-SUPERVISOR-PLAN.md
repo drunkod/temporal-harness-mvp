@@ -3,6 +3,22 @@
 Date: 2026-10-14
 Owner goal: Leave a manually started ChatGPT project task running; the supervisor watches the same conversation without duplicate prompts, understands its status, independently verifies the task, continues unfinished work in that chat, and creates a new **project-scoped Sashai chat with Desktop Commander** for the next approved item. **Repo Harness is excluded from this active chain.**
 
+## Browser-origin Sashai chat and Desktop Commander — 2026-10-14
+
+**Manual browser creation plus connector invocation:** A new project-scoped Sashai chat (`6acfca8f-34cc-83eb-aaa9-fbd1301247d4`) was created in a dedicated Helium Profile 4 window through the ChatGPT UI, not Oracle. The main browser process was reused. Remote Desktop Commander was selected from the composer app menu and one guarded, strictly read-only check of the MVP folder was submitted. ChatGPT's expanded activity independently showed **“Listed devices and retrieved file metadata”**. This proves tool invocation for a harmless check; it does **not** prove a real repository implementation task.
+
+**Automatic passive adoption:** the existing 5-second watcher detected this chat while generating, logged `single_running_chat`, and adopted it without sending a duplicate prompt. A durable `SEND_ATTEMPTED` guard prevents replay of the test submission.
+
+**Continuation without an Oracle parent session:** clean Oracle CLI 0.21.5 used `--browser-tab` with this **exact manually started conversation URL** and sent one harmless continuation. Session `sashai-manual-origin-v0215-followup` exited `completed`, returned the same conversation ID, and captured `SASHAI_BROWSER_ORIGIN_ORACLE_FOLLOWUP_OK`. CDP observed two user and two assistant turns in this same chat. An independent send guard prevents blind retries.
+
+**Oracle correlation:** Flowdeck now finds relevant Sashai Oracle sessions dynamically, matches the locally saved native Oracle `## Answer` against the actual browser reply, and omits the private saved answer from the Oracle metadata JSON response. `taskState` remains `unverified`.
+
+**Authoritative next-task gate:** `.ai/harness/active-plan` and `.ai/harness/active-worktree` are both absent from `/Users/test/Documents/work/sashai`. Its non-archived localization plan records W1–W7 complete and explicitly disclaims active execution selection. `src/sashai-task-source.ts` therefore returns `no_active_plan` and `dispatchAllowed=false`, refuses archived/external plans, and never promotes derived `tasks/current.md` or deferred `tasks/todos.md`.
+
+**Important transport limitation (confirmed in Oracle 0.21.5 source, not live re-tested):** in `dist/src/browser/index.js`, `submitOnce()` unconditionally invokes `clearPromptComposer()` before inserting its prompt. The implementation clears the editable element, including the Remote Desktop Commander mention selected in ChatGPT's composer. Therefore **do not** preselect the plugin in a new chat and then let unmodified Oracle submit that turn, assuming the plugin will survive. For MCP-using turns, use the demonstrated guarded **browser UI plugin selection + UI submission** until a tested integration hook exists. For text-only continuation, `oracle --browser-tab <exact-conversation-url>` is proven. Any tool-using continuation requires its own validated connector-selection and one-shot dispatch, not an unconditional Oracle `--followup`. No real task dispatch is enabled.
+
+**Remaining before unattended real tasks:** implement a guarded browser-UI tool-selected task dispatcher (or a fully tested Oracle connector-selection hook), bind an explicitly approved task and acceptance criteria, independently verify file/test outcomes, and implement durable Temporal idempotent decision/dispatch/verification. No real Sashai task has been executed by this test.
+
 ## Current implementation update — Oracle 0.21.5 proven (2026-10-14)
 
 **Supersedes the 0.21.3 capture blocker below.** Oracle 0.21.5 is pinned as an unmodified npm release inside `.state/oracle-v0215`; global Homebrew 0.21.3 remains untouched. The isolated 0.21.3 compatibility patch was retired from active execution.
@@ -11,9 +27,9 @@ Owner goal: Leave a manually started ChatGPT project task running; the superviso
 - **Same chat followup**: `sashai-pristine-v0215-followup` -> `completed` in 17.7s, response file `SASHAI_ORACLE_0215_FOLLOWUP_OK`; identical original/followup conversation ID `6acfc4f3-2cdc-83eb-8e4a-c8a955ce7fb0`. One submission per session, no replay.
 - **Profile 4 and read-only observer**: extra separate window, same original Helium PID; post-hydration verified 2 user and 2 assistant turns. Flowdeck shows Oracle `completed` and `taskState=unverified`.
 - **Background passive watcher**: `org.drunkod.oracle-sashai-passive-watcher`, user LaunchAgent running; 5-second polling. It can adopt only a uniquely active Sashai chat, without submitting prompts or executing code. If multiple tasks are running, it does nothing. Manage via `scripts/manage-sashai-watcher.sh start|stop|status`. This is not yet the durable Temporal task orchestrator.
-- **Tests**: 19/19 passing (including verified completed fresh/followup Oracle records); Sashai working tree untouched.
+- **Tests at this earlier milestone**: 19/19. Current browser-origin/plan-source integration has **26/26** passing; Sashai working tree untouched.
 
-**Remaining acceptance gates:** choose Desktop Commander MCP in newly created project chat, prove safe followup for manually originated chats without Oracle parent sessions, resolve approved active plan and task acceptance checks, and implement the Temporal verify/next-task decision loop. No actual Sashai task has been claimed complete.
+**Remaining acceptance gates:** implement guarded UI-origin Desktop Commander selection and submission for actual next-task dispatch, establish an approved active plan/task binding (currently absent), independently verify actual repository acceptance, and implement the durable Temporal loop. Browser-origin adoption and same-chat continuation are proven in the harmless smoke. No actual Sashai task has been claimed complete.
 
 ## Historical Oracle 0.21.3 commit-timeout diagnostic (2026-10-14)
 
@@ -48,13 +64,13 @@ flowchart TD
 | Oracle creates a Sashai project conversation | PASS | Oracle session `flowdeck-sashai-oracle-live-cdp` recorded URL under `g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/...` and `promptSubmitted=true` |
 | Oracle prompt actually completed in ChatGPT | PASS BY INDEPENDENT OBSERVATION | Sashai chat showed exactly `ORACLE_SASHAI_SMOKE_OK`. The original Oracle session **still says error** |
 | Oracle completion capture | **PASS on 0.21.5 smoke and followup** | Native Oracle 0.21.5 saved both exact answers, statuses `completed`; old 0.21.3 sessions remain failed historical evidence |
-| Passive adoption of existing Sashai tab | PASS for both finished test chats | `src/sashai-observer.ts`, `scripts/sashai-supervisor.mjs adopt` and `.state/oracle-sashai/adopted.json`; no prompt sent |
-| Live generation state (Stop button present) | TESTED SYNTHETIC ONLY | Branch covered by unit tests; real long running task not yet demonstrated |
+| Passive adoption of existing Sashai tab | **PASS for running browser-created chat** | `src/sashai-observer.ts`, `scripts/sashai-supervisor.mjs adopt` and `.state/oracle-sashai/adopted.json`; no prompt sent |
+| Live generation state (Stop button present) | **PASS in a live harmless browser-created chat** | Watcher logged `single_running_chat`, then running, then completion; Stop heuristic also has synthetic tests |
 | Flowdeck browser status | PASS | `GET /api/sashai/status` returns observed ChatGPT turn, separate Oracle status, response evidence, unverified task state. Homepage renders `public/sashai.html` |
 | Legacy Repo Harness removed from active actions | PASS | `POST /api/start` returns 410. Old fixture code and history retained but **not callable through main dashboard** |
-| Desktop Commander connector preselection in the new ChatGPT chat | NOT PROVEN | Oracle `--chatgpt-url` selects a project, not automatically the Desktop Commander connector |
-| Oracle same-chat follow-up with this failed session | BLOCKED | Oracle saved `promptSubmitted=true`, but `oracle session --harvest` refused because it could not confirm the turn |
-| Identify next approved Sashai task | BLOCKED BY AUTHORITATIVE STATE | `tasks/current.md` is idle derived snapshot; `tasks/todos.md` is deferred. Unarchived localization plan W1–W7 was completed but explicitly not selected as active in its own text. Do not schedule from it |
+| Desktop Commander plugin selection and tool use in browser-created Sashai chat | **PASS for browser UI smoke; production dispatch still pending** | Composer selected Remote Desktop Commander; ChatGPT activity: “Listed devices and retrieved file metadata”. Oracle new-chat automatic connector selection still unimplemented |
+| Oracle continuation of manually browser-created Sashai chat | **PASS using 0.21.5 --browser-tab** | Completed session `sashai-manual-origin-v0215-followup`, exact same conversation ID, captured response; original failed 0.21.3 sessions remain unsafe to replay |
+| Identify next approved Sashai task | **BLOCKED: no active-plan marker** | Read-only `src/sashai-task-source.ts` confirms no active plan/worktree owner markers. All W1–W7 are complete; deferred goals and idle derived snapshot are not runnable task sources |
 | Actual Desktop Commander autonomous work in Sashai | NOT STARTED | No project files changed by this prototype, no task completion asserted |
 
 **Second live Oracle smoke:** `oracle-sashai-local-patched-smoke` created the project conversation ending in `/c/6acfbc18-4c98-83ed-b711-a5a8e9efb121`. The read-only CDP supervisor independently observed one user turn, one assistant turn and response `ORACLE_SASHAI_PATCH_OK_20261014B`. Oracle session status is still `error` and its failure concerns stable prior turns. **No second send/replay was attempted.**
@@ -77,16 +93,16 @@ The dashboard supports choosing exactly which open Sashai chat to adopt when mul
 
 1. **Done:** Direct Oracle + Helium Profile 4 route; independent URL/response observation.
 2. **Done:** Adopt existing conversation read-only, detect idle/running/turn-finished and display its source evidence on browser dashboard.
-3. **Done for Oracle-created sessions:** clean pinned Oracle **0.21.5** passed new-chat and same-conversation `--followup`, captured both responses and verified conversation identity. Old 0.21.3 monkey patch removed from the active binary path. Adopted-manual-chat continuation still needs independent proof.
-4. **Next:** Prove selection of **Desktop Commander plugin** in the correct Sashai ChatGPT conversation, its tool invocation and start/finish evidence.
-5. **Next:** Derive an **approved** active plan and acceptance checks without searching arbitrary TODOs, then add plan/task-to-chat binding.
+3. **Done for Oracle-created and browser-created sessions:** clean pinned Oracle **0.21.5** passed new-chat and same-conversation followup, then independently continued a browser-started Sashai chat using `--browser-tab <exact-url>`; all captured responses matched live DOM. Old 0.21.3 sessions remain unsafe to replay.
+4. **Partially done:** Desktop Commander was selected and invoked on a read-only browser-created Sashai test, and the watcher adopted its live session. **Next:** add a guarded UI-origin connector-selected sender to the durable task dispatcher; unmodified Oracle 0.21.5 clears composer mentions before submission, so preselecting then calling Oracle is unsafe. Verify invocation and idempotency before real repo work.
+5. **Gate implemented; execution blocked by missing authority:** resolver reads only explicit `.ai/harness/active-plan` and `.ai/harness/active-worktree` markers and checks `## Task Breakdown`, refusing archive/foreign worktree and `tasks/current.md`/`tasks/todos.md` promotion. No approved plan currently exists. Next obtain deliberate active plan and bind its accepted tasks.
 6. **Next:** Add Temporal loop to observe and resume unfinished work in the **same** chat, then independently verify accepted work and open next task in a new **Sashai** chat. Guard each submission with a persisted claim and reconcile before retry.
 7. **Next:** Surface per-chat/task status in Flowdeck and optional summary in the actual ChatGPT conversation, but keep polling read-only.
 
 ## Final MVP evidence
 
-- Codegraph reindexed the current Oracle-only MVP: 18 source files, 265 nodes, 478 edges. (Earlier 15/217/403 were historical counts.)
-- The test suite passed **19/19** after upgrading to clean Oracle 0.21.5, including real completed Oracle session/followup evidence, read-only Sashai adoption, ambiguous auto-adopt guards and duplicate-send prevention for a repeated adoption.
+- Codegraph reindexed the current Oracle-only MVP: **22 source files, 336 nodes, 589 edges**. Earlier 15/217/403 and 18/265/478 were historical counts.
+- The test suite passed **26/26** after upgrading to clean Oracle 0.21.5, including real completed Oracle session/followup evidence, read-only Sashai adoption, ambiguous auto-adopt guards and duplicate-send prevention for a repeated adoption.
 - After correcting the launcher process check, the Mac showed **three Helium windows instead of two**, with the SAME main Helium PID. The new foreground window contained Flowdeck; the Sashai conversation was left in its own window.
 - Clean Oracle 0.21.5 captures and completes both the fresh project chat and its followup. Historical 0.21.3 sessions remain `error`: never replay them. The supervisor must NOT infer project-task completion from the chat response.
 
