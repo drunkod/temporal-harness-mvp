@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -9,6 +9,7 @@ import { Connection, Client } from '@temporalio/client';
 import { roamingMvp, statusQuery } from './workflows.js';
 import { sashaiOverview, listSashaiTabs, adoptSashaiConversation } from './sashai-observer.js';
 import { readReportReviewStatus, browserReportPath } from './sashai-report-status.js';
+import { getJazzStatusConfig } from './jazz-status-config.js';
 
 const exec = promisify(execFile);
 const base = resolve(process.cwd());
@@ -88,9 +89,45 @@ async function beginRun(): Promise<RunManifest> {
 }
 const staticHtml = join(base, 'public', 'index.html');
 const sashaiHtml = join(base, 'public', 'sashai.html');
+const supervisorDirectory=join(base,'.state','flowdeck-supervisor');
+await mkdir(supervisorDirectory,{recursive:true});
+async function supervisorProjection(){
+  try{return JSON.parse(await readFile(join(supervisorDirectory,'status.json'),'utf8'));}
+  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;
+    return {status:'not_configured',phase:'waiting_for_enrollment',tasks:[],
+      blocker:'Enroll an owner/device and approved active-plan tasks before starting the supervisor.'};}
+}
+const widgetAssets:Record<string,{file:string;type:string}>={
+ '/jazz-status-loader.js':{file:join(base,'public','jazz-status-loader.js'),type:'text/javascript'},
+ '/supervisor-status.js':{file:join(base,'public','supervisor-status.js'),type:'text/javascript'},
+ '/widgets/jazz-status/dist/jazz-status.js':{file:join(base,'widgets','jazz-status','dist','jazz-status.js'),type:'text/javascript'},
+ '/widgets/jazz-status/dist/jazz-status.css':{file:join(base,'widgets','jazz-status','dist','jazz-status.css'),type:'text/css'},
+};
 const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
   const url = new URL(req.url || '/', 'http://' + host + ':' + port);
   try {
+    if(req.method==='GET'&&widgetAssets[url.pathname]){
+      const asset=widgetAssets[url.pathname];
+      const body=await readFile(asset.file);
+      res.writeHead(200,{'Content-Type':asset.type+'; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+      res.end(body);return;
+    }
+    if(req.method==='GET'&&url.pathname==='/api/jazz/status-config'){
+      json(res,200,getJazzStatusConfig({pageOrigin:'http://'+host+':'+port}));return;
+    }
+    if(req.method==='GET'&&url.pathname==='/api/supervisor/status'){
+      json(res,200,await supervisorProjection());return;
+    }
+    if(req.method==='GET'&&url.pathname==='/api/supervisor/stream'){
+      res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-store','Connection':'keep-alive','X-Accel-Buffering':'no'});
+      let closed=false;
+      const send=async()=>{try{const state=await supervisorProjection();if(!closed)res.write('event: status\ndata: '+JSON.stringify(state)+'\n\n');}
+        catch{if(!closed)res.write('event: status\ndata: {"status":"unavailable","blocker":"Cannot read supervisor projection"}\n\n');}};
+      const watcher=watch(supervisorDirectory,{persistent:false},(_event,name)=>{if(name==='status.json')void send();});
+      const heartbeat=setInterval(()=>{if(!closed)res.write(': connected\n\n');},15000);
+      req.on('close',()=>{closed=true;watcher.close();clearInterval(heartbeat);});
+      await send();return;
+    }
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/sashai')) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(await readFile(sashaiHtml, 'utf8'));

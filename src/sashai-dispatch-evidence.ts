@@ -9,8 +9,9 @@ const names=(v:Buffer)=>v.toString('utf8').split('\0').filter(Boolean);
 export function normalizeComposerText(value:string):string {
   return value.normalize('NFC').replace(/\s+/gu,' ').trim();
 }
+export const FLOWDECK_CONNECTOR_LABEL = 'Probe RemoteMCP2';
 export function composerPayloadFor(prompt:string):string {
-  return normalizeComposerText('Remote Desktop Commander '+prompt);
+  return normalizeComposerText(FLOWDECK_CONNECTOR_LABEL+' '+prompt);
 }
 export function composerPayloadMatches(actual:string,prompt:string):boolean {
   return normalizeComposerText(actual)===composerPayloadFor(prompt);

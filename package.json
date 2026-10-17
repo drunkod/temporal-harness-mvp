@@ -12,6 +12,7 @@
     "list": "node dist/cli.js list",
     "verify": "node dist/verify.js",
     "test": "npm run build && node --test tests/*.test.mjs",
+    "test:portable": "npm run build && node --test tests/flowdeck-*.test.mjs tests/sashai-live-browser.test.mjs",
     "dashboard": "node dist/dashboard-server.js",
     "demo": "npm run build && node dist/dashboard-server.js",
     "sashai:status": "node scripts/sashai-supervisor.mjs status",
@@ -28,7 +29,17 @@
     "sashai:temporal:status": "node scripts/sashai-report-temporal.mjs status",
     "sashai:temporal:binding-status": "node scripts/sashai-binding-proof.mjs status",
     "sashai:temporal:fixture-repair-status": "node scripts/sashai-synthetic-temporal.mjs status repair",
-    "sashai:temporal:fixture-uncertain-status": "node scripts/sashai-synthetic-temporal.mjs status uncertain"
+    "sashai:temporal:fixture-uncertain-status": "node scripts/sashai-synthetic-temporal.mjs status uncertain",
+    "sashai:live:status": "node scripts/sashai-live-temporal.mjs status",
+    "sashai:live:worker": "node scripts/sashai-live-temporal.mjs worker",
+    "sashai:live:start": "node scripts/sashai-live-temporal.mjs start",
+        "supervisor:status": "node scripts/flowdeck-supervisor.mjs status",
+        "supervisor:worker": "npm run build && node scripts/flowdeck-supervisor.mjs worker",
+        "supervisor:start": "npm run build && node scripts/flowdeck-supervisor.mjs start",
+        "supervisor:workflow-status": "node scripts/flowdeck-supervisor.mjs workflow-status",
+        "supervisor:events": "node scripts/flowdeck-work-events.mjs",
+            "supervisor:smoke": "npm run build && node scripts/flowdeck-supervisor-smoke.mjs",
+        "jazz:build": "node widgets/jazz-status/build.mjs"
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",

@@ -15,11 +15,22 @@
 <div class="shell">
 <header class="top"><div class="brand"><div class="mark">↗</div><div><div class="wordmark">Flowdeck <span style="font-weight:400;color:#9eb1d4">/ Sashai</span></div><div class="micro">Oracle-only · ChatGPT supervisor</div></div></div><div class="pulse"><span id="led" class="dot"></span><span id="connect">Подключение к Helium…</span><span class="projectbadge">Helium · Profile 4</span></div></header>
 <section class="hero"><div><div class="eyebrow">Наблюдение без повторной отправки</div><h1>Статус работы<br/>в проекте Sashai.</h1><p>Flowdeck наблюдает за уже существующим разговором ChatGPT через CDP, сопоставляет его с записью Oracle CLI и не принимает завершение ответа за выполнение задачи проекта.</p></div><div class="buttons"><select id="tabPicker" class="btn" aria-label="Выберите чат Sashai" style="max-width:225px"><option value="">Выберите чат Sashai…</option></select><button class="btn primary" id="adopt">Принять выбранный чат</button><button class="btn" id="refresh">↻ Обновить</button></div></section>
+<section class="panel" style="margin-bottom:16px" aria-label="Autonomous supervisor">
+ <div class="head"><h2>Aut</h2>onomous supervisor · v1.2</h2><span id="supervisor-connection" class="small">Connecting to live projection…</span></div>
+ <div class="pad"><div id="supervisor-phase" class="big-state" style="font-size:24px">Waiting for enrollment</div>
+ <p id="supervisor-detail">Work-session events wake Temporal. Finished implementation becomes review pending; no code review runs here.</p>
+ <div id="supervisor-tasks" aria-live="polite"></div></div>
+</section>
+<section class="panel" style="margin-bottom:16px" aria-label="Work session status">
+ <div class="head"><h2>Work sessions · Jazz</h2><span class="small">Read-only · optional display lane</span></div>
+ <div class="pad" id="flowdeck-jazz-status"><p>External status — not embedded. Existing plugin login required.</p>
+ <a class="link" href="https://tests-macbook-air.tail70b8a.ts.net/dashboard/devices" target="_blank" rel="noopener noreferrer">Open authorized plugin work status ↗</a></div>
+</section>
 <div class="grid">
 <section class="panel"><div class="head"><h2>Текущий разговор</h2><span class="state-pill" id="badge">Ожидание</span></div><div class="pad">
  <div class="projectbadge"><span class="orb"></span> dr/sashai · ChatGPT Project</div>
  <div class="big-state" id="stage">Загрузка…</div><div class="sub-state" id="stageDescription">Проверяем адрес проекта и состояние окна.</div>
- <div class="cards"><div class="metric"><div class="k">Сообщения пользователя</div><div class="v" id="userCount">—</div><div class="fine">Подтверждённые ходы в UI</div></div><div class="metric"><div class="k">Ответы ChatGPT</div><div class="v" id="assistantCount">—</div><div class="fine">Прочитано из DOM</div></div><div class="metric"><div class="k">Состояние задачи</div><div class="v warning" style="font-size:18px;margin-top:9px" id="task">Не проверена</div><div class="fine">Нужны тесты/критерии</div></div></div>
+ <div class="cards"><div class="metric"><div class="k">Сообщения пользователя</div><div class="v" id="userCount">—</div><div class="fine">Подтверждённые ходы в UI</div></div><div class="metric"><div class="k">Ответы ChatGPT</div><div class="v" id="assistantCount">—</div><div class="fine">Прочитано из DOM</div></div><div class="metric"><div class="k">Состояние задачи</div><div class="v warning" style="font-size:18px;margin-top:9px" id="task">Не проверена</div><div class="fine">Implementation status · external review</div></div></div>
  <div class="kv"><span class="key">Проект</span><span class="val">dr/sashai</span></div>
  <div class="kv"><span class="key">Chat ID</span><span id="conversation" class="val">—</span></div>
  <div class="kv"><span class="key">Источник</span><span id="source" class="val">Helium CDP · только чтение</span></div>
@@ -110,4 +121,5 @@
  refresh();setInterval(refresh,2000);
 })();
 </script>
+<script type="module" src="/supervisor-status.js"></script>
 </body></html>
