@@ -1,125 +1,104 @@
-# Flowdeck — Oracle-only Sashai Chat Supervisor
+# Flowdeck
 
-**Created:** 2026-10-14 · **MacBook:** Tests-MacBook-Air · **deadline demo:** next morning.
+**An experimental Temporal-backed supervisor for approved tasks in ChatGPT Projects.**
 
-A small, independent Git repository under `~/Documents/work/temporal-harness-mvp`. Its primary demonstration is **Oracle-only Sashai conversation supervision** in Helium Profile 4; the original Temporal two-fixture execution proof remains available for historical inspection.
+An owner submits the first task once. Flowdeck adopts that conversation, observes work-session events, continues unfinished work in the same chat, and can submit the next independent approved task in a new chat within the same Project.
 
-## Historical Temporal fixture stages (not the active Sashai pipeline)
+Implementation completion is recorded as **`implementation_done / review_pending`**. Code review, acceptance, merging, and release belong to external systems.
 
-```
-Temporal Server 1.32.1 (installed in Nix-Config, loopback only)
-   ↕ Temporal TypeScript Worker, taskQueue=repo-harness-mvp
-   → discover TODO across two disposable Git repositories
-   → independently compile a full exact-output spec packet with SHA-256
-   → optional OpenCode Zen Jev reasoning-risk classification (advisory)
-   → Repo Harness ChatGPT browser-consult --dry-run (no Web submission)
-   → isolated Git worktree → exact packet application (Codex substitute)
-   → independently check file hash + changed-file allowlist
-   → verified Git commit promotion → check off TODO
-   → durable receipt → next repo
-```
+> **Maturity:** development MVP, not unattended production automation. Synthetic orchestration and real-browser no-send checks have passed in the development environment. The latest attended pilot paused during identity correlation; a complete current live two-task cycle has not been demonstrated. Historical reports describe their own builds, not guarantees for this checkout.
 
-**Important scope:** This is an intentionally narrow proof. The spec compiler is **deterministic**, not an autonomous AI planner. The executor applies an exact file, not a real Codex model invocation. The browser stage generates local **dry-run** sessions; it is not proof of a completed ChatGPT consultation. Temporal is real and persistent, but retry recovery of arbitrary side effects is not yet production-hardened. No real project repositories are modified.
+## Start here
 
-## Temporal bound review and disposable first-task pilot (2026-10-15)
-
-A real new Temporal execution verified the **immutable post-resume task, attempt ID, chat, contract, report path/hash and send claim** after a worker restart. The verifier's receipt now includes the attempt ID and is matched to the pre-wait binding. A swapped attempt ID fails at pre-verification, receipt, and post-verification.
-
-Two new **synthetic-only** Temporal runs then exercised a fresh task lifecycle: `repair` prepared and sent a disposable report, independently rejected a known missing acceptance marker, applied one targeted correction and reverified; `uncertain` injected a lost response after the send claim and safely **blocked without any resend or correction**. The synthetic reports never opened ChatGPT or invoked Desktop Commander. This is an orchestration proof, not a real connector-selected browser dispatch. No Sashai implementation plan is active. See [the execution report](docs/SASHAI-TEMPORAL-BINDING-AND-SYNTHETIC-LIFECYCLE-2026-10-15.md).
-
-Read-only receipts: `node scripts/sashai-binding-proof.mjs status`, `node scripts/sashai-synthetic-temporal.mjs status repair`, and `node scripts/sashai-synthetic-temporal.mjs status uncertain`.
-
-## Report evidence hardening and Temporal restart proof (2026-10-15)
-
-The approved browser report remains independently accepted, but the supervisor now distinguishes **historical limited evidence** from stronger safeguards required for all new attempts. Both connector-preserving report senders compare the **entire normalized composer payload** before clicking Send, and new attempts bind staged diffs plus hashes of modified/untracked file contents. Flowdeck requires the current contract, persisted attempt, acceptance and report hashes to match before showing current report verification.
-
-The new `sashaiReportLifecycle` Temporal workflow safely adopted the prior report's sealed submission and correction records, survived a **dedicated worker restart**, then completed on a durable resume signal at `verified_approval_boundary`. It performs read-only reconciliation and verification; **it cannot send prompts or dispatch new tasks**. Check the recorded run with `node scripts/sashai-report-temporal.mjs status` and see [the evidence and limitations](docs/SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md). The report's original Git evidence was limited to status/unstaged diff; stronger v2 snapshots cannot be applied retroactively. No Sashai product implementation is authorized.
-
-## Sashai ChatGPT Supervisor — current primary MVP (Oracle-only)
-
-The active CLI is the isolated, unmodified Oracle **0.21.5** (`npm run oracle:pin`); the global Homebrew Oracle 0.21.3 is untouched. Live new-chat and same-chat followup tests completed with accurate saved responses. A read-only background watcher (`scripts/manage-sashai-watcher.sh status|start|stop`) may adopt exactly one active Sashai chat; it never dispatches work.
-
-The live homepage at **http://127.0.0.1:4319/** now displays the Sashai project conversation, **read-only adoption**, the current ChatGPT turn status and independently observed Oracle answer evidence. The active integration uses **Oracle CLI + Helium Profile 4 CDP** without Repo Harness. The earlier two-fixture workflow is retained as historical evidence, but its `POST /api/start` launcher is disabled with HTTP 410. One **approved report-only** browser task was submitted and verified through Desktop Commander; there is still no general unattended Sashai implementation task dispatcher.
-
-```bash
-cd ~/Documents/work/temporal-harness-mvp
-npm test
-node scripts/sashai-supervisor.mjs doctor
-node scripts/sashai-supervisor.mjs status
-node scripts/sashai-supervisor.mjs watch 5
-node scripts/sashai-supervisor.mjs auto-adopt
-scripts/manage-sashai-watcher.sh status
-scripts/open-helium-profile4.sh
-```
-
-Read-only Oracle browser diagnostics: `node scripts/oracle-sashai.mjs diagnose flowdeck-sashai-oracle-live-cdp`. See [root-cause report](docs/ORACLE-PROMPT-COMMIT-RCA.md). Oracle **0.21.5 now captures answers and same-chat followups** in live Sashai smoke tests. Legacy 0.21.3 sessions must not be blindly replayed.
-
-**New live browser-origin integration proof:** Desktop Commander was selected in a fresh Sashai project chat, invoked read-only (ChatGPT activity: “Listed devices and retrieved file metadata”), adopted by the watcher while running, then continued in the SAME conversation by Oracle 0.21.5 `--browser-tab`. The watcher and dashboard remain non-sending. An explicit read-only active-plan resolver reports **no approved active plan**, so actual tasks must not auto-start. Test and design evidence: [canonical plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md).
-
-The one-shot test helper `scripts/ui-sashai-plugin-smoke.mjs` is for diagnosing this specific 2026-10-14 harmless smoke; its persistent send guard intentionally refuses repeat submissions. Do not use it to dispatch production tasks.
-
-See [the canonical Oracle Sashai plan](docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md) and [Sashai user journey](docs/SASHAI-SUPERVISOR-JOURNEY.md). Prior Repo Harness integration in `src/activities.ts` remains isolated in the legacy fixture and is **not** part of the active Sashai supervisor.
-
-## Live browser dashboard (now implemented)
-
-Open **http://127.0.0.1:4319/** in a **new Helium Profile 4 window** (verified name: `drunkod gpt`), keeping your existing ChatGPT tab untouched:
-
-```bash
-cd ~/Documents/work/temporal-harness-mvp
-scripts/open-helium-profile4.sh
-```
-
-The dashboard is served by `org.drunkod.temporal-harness-mvp-dashboard`; its **main Sashai view polls Helium via CDP every two seconds**. The independent Temporal worker remains available for historical fixture runs, but new fixture dispatch via the HTTP API is disabled. Check `docs/ORACLE-SASHAI-SUPERVISOR-PLAN.md` for the current architecture.
-
-## Quick start on MacBook
-
-```bash
-cd ~/Documents/work/temporal-harness-mvp
-npm install
-npm run build
-npm run seed                       # two distinct disposable Git repositories
-npm run worker                     # terminal A: real Temporal Worker
-npm run start -- --wait            # terminal B: real two-repo Temporal Workflow
-npm run verify                     # checks final files, receipts, and TODO completion
-npm run list                       # list workflow IDs and statuses
-npm run status -- <workflow-id>    # inspect one workflow
-npm test
-```
-
-The server must respond `SERVING` to:
-```bash
-~/.local/share/temporal-server/nix-cli/bin/temporal --address 127.0.0.1:7233 operator cluster health
-```
-
-The worker can run without ChatGPT.com being open. A running Workflow is queryable by `mvpStatus`. To query from anywhere with access to the Mac, run `npm run status -- <id>` via Remote Desktop Commander.
-
-## Evidence and paths
-
-| Location | Contents |
+| Goal | Read |
 |---|---|
-| `examples/projects/alpha`, `beta` | Two independent seed Git repositories with TASKS.md and generated OUTPUT.md |
-| `.state/packets/` | Frozen spec packet JSON, hashes, base Git HEAD |
-| `.state/claims/` | Claim-before-effect; uncertain attempts are not blindly replayed |
-| `.state/worktrees/` | Disposable isolated execution worktrees |
-| `.state/receipts/` | One verification receipt per task |
-| `examples/projects/*/.ai/harness/chatgpt/sessions/` | Repo Harness browser dry-run records |
-| `.state/worker.log` | Background Temporal Worker log (when launched via nohup) |
+| Understand the system | [Architecture](docs/architecture/overview.md) |
+| Find documentation | [Documentation index](docs/README.md) |
+| Test on the configured MacBook | [Human runbook](docs/FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) — environment-specific |
+| Understand event delivery | [Work-event bridge](docs/operations/FLOWDECK-WORK-EVENTS.md) |
+| Contribute safely | [Contributing](CONTRIBUTING.md) |
+| Prepare a GitHub release | [Publication checklist](docs/publishing.md) |
+| Find a relocated document | [Document file map](docs/FILE-MAP.md) |
 
-No new public endpoints, OAuth bypass, Chrome profile access, or modifications to RemoteMCP-Jazz/Nix-Config are required for this test.
+## Architecture
 
-## Jev compatibility
+```mermaid
+flowchart TD
+    Owner[Owner submits initial approved task] --> Chat[ChatGPT Project conversation]
+    Chat --> Connector[Probe RemoteMCP2 work session]
+    Connector --> Events[Local event follower]
+    Events --> Workflow[Temporal workflow]
+    Workflow --> Activities[Identity and browser activities]
+    Activities --> Chat
+    Workflow --> Projection[Optional read-only status projection]
+```
 
-The system reuses `/Users/test/nix-config/ai-tools/opencode/plugin/jev-core.mjs`; it uses **OpenCode Zen** model `jev-1.13-free`, with the existing SOPS runtime credential. No secrets are placed in source or logged. The Jev result is advisory for these two pre-approved fixtures. `--no-jev` disables this optional network call.
+- **Temporal TypeScript SDK:** durable, deterministic orchestration; non-deterministic operations stay in activities.
+- **Oracle / Helium Profile 4:** the existing browser stack; authenticated browser operations use local CDP.
+- **Probe RemoteMCP2:** work execution and machine-readable work-session events.
+- **Local journals and claims:** preserve task/chat identity and prevent blind retries after uncertain side effects.
+- **Dashboard / Jazz widget:** optional visibility, never dispatch authority.
 
-## Browser compatibility
+A session-ending event is not task acceptance. Exact identity checks, approved task-source routing, final status markers, and send budgets remain authoritative. There is no guaranteed exactly-once delivery through the external browser service.
 
-Installed `repo-harness` is 0.20.0, but the global `oracle` binary is 0.21.3 whereas its doctor requires **exactly 0.20.0**. We do not downgrade or change the global binary. The dry-run exercises prompt packaging/session persistence without opening Chrome. To test actual ChatGPT browser submission later, install a pinned 0.20.0 Oracle locally and pass an explicit `--oracle-bin`, then repeat `browser-doctor` and confirm the approved browser profile.
+## Development setup (no live dispatch)
 
-## What remains for product MVP
+Use a current Node.js runtime with `node:sqlite` support for the event bridge; Node 24 is the CI target. Install dependencies from the lockfile in a development checkout:
 
-A model-backed planner that creates independently checkable specs, real Codex typewriter adapter, asynchronous device dispatch through RemoteMCP-Jazz, protected MCP control tools, live ChatGPT browser consult/follow-up with compatible Oracle, and safe replay/reconciliation for crashes. **The live browser task-progress dashboard is implemented and verified.** The existing 26 RemoteMCP executor tool schemas remain untouched.
+```sh
+npm ci
+npm run build
+node scripts/check-docs.mjs
+node --test tests/check-docs.test.mjs tests/flowdeck-pilot-budget.test.mjs
+```
 
-## Stop and reset
+These commands install dependencies, compile files, and run local checks. They do not launch the live supervisor. Building changes `dist/`: **do not rebuild a frozen operator checkout during a live attempt.**
 
-Stop Worker only: `kill $(cat .state/worker.pid)` (if background PID exists).
-The Temporal server is independent and remains running. To repeat the demo, delete only the **two disposable** `examples/projects/alpha` and `beta` folders and `.state`, then run `npm run seed`; never delete real repos or Temporal's SQLite storage.
+The broader suites are available, but are not fully hermetic:
+
+```sh
+npm run test:portable
+npm test
+```
+
+Some tests depend on local services, installed integrations, or historical evidence. A fresh-clone failure is not permission to create production enrollment or bypass identity checks. The GitHub workflow runs only type checking, documentation checks, and the bounded local test tier; it is not a live acceptance test.
+
+## Operational boundaries
+
+Live operation is deliberately **not a clone-and-run quick start**. The current adapter supports one specific enrolled Project and the established browser/connector environment; replacing an example URL does not make arbitrary Projects supported. See [configuration examples](examples/README.md).
+
+The current coordinated entrypoint is `scripts/flowdeck-launch.mjs`. It starts a real worker, durable workflow, and event follower, and can lead to real submissions. Follow the human runbook before using it. Do not run independent launchers against the same browser.
+
+Safe inspection entrypoints include:
+
+```sh
+node scripts/flowdeck-supervisor.mjs --help
+node scripts/flowdeck-supervisor.mjs status
+node scripts/flowdeck-work-events.mjs --help
+```
+
+`status` is a saved projection; it can be stale. Authoritative execution inspection uses `workflow-status` with the exact configured workflow identity. See the [script catalog](scripts/README.md) for commands grouped by side effects.
+
+**Never delete `.state` to retry a test.** It contains claims, bindings, inboxes, and audit journals. An uncertain send must be reconciled, not repeated. Browser-owner claims are checkout-local, not machine-wide across clones. Stopping a launcher does not itself cancel the Temporal execution or undo an in-flight browser action.
+
+The root `seed`, `worker`, `start`, and `verify` npm scripts belong to the **historical fixture**, not the active Flowdeck supervisor. Historical documentation is retained for context, not as current launch instructions.
+
+## Repository layout
+
+```text
+src/          Workflow definitions, activities, browser/event adapters, dashboard
+scripts/      Operational CLIs, read-only checks, synthetic test harnesses
+tests/        Automated tests (see CONTRIBUTING.md for scope)
+public/       Dashboard assets
+widgets/      Optional Jazz status widget and its own dependency lockfile
+examples/     Non-executable configuration examples; generated fixtures are ignored
+docs/         Index, architecture, operations, plans, history, research
+.state/       Ignored local runtime/evidence — never publish or reset casually
+dist/         Ignored build output
+```
+
+## Publishing and security
+
+Repository organization is complete enough to navigate, **not a certification that all historical content is safe to publish**. Retained records and some source/tests still contain environment-specific paths and Project identifiers. Review the current tree **and Git history** before public release. `.gitignore` does not remove already tracked content.
+
+Read [SECURITY.md](SECURITY.md) and the [publication checklist](docs/publishing.md). No project-wide license has been chosen; do not describe this as an open-source release until the owner selects a license and reviews third-party obligations. Package `private: true` prevents accidental npm publication, not GitHub exposure.

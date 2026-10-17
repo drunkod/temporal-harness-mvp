@@ -1,0 +1,13 @@
+{
+  "projects": [
+    {
+      "id": "sashai",
+      "ownerId": "REPLACE_WITH_ENROLLED_OWNER_ID",
+      "deviceId": "REPLACE_WITH_ENROLLED_DEVICE_ID",
+      "repo": "/absolute/path/to/approved-worktree",
+      "projectUrl": "REPLACE_WITH_CURRENTLY_SUPPORTED_PROJECT_URL",
+      "initialTaskId": "REPLACE_WITH_APPROVED_INITIAL_TASK_ID",
+      "tasks": []
+    }
+  ]
+}

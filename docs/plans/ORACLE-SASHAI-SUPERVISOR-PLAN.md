@@ -11,7 +11,7 @@ For the **fresh task lifecycle**, a separate Temporal queue (`oracle-sashai-synt
 
 **Boundary:** This proves Temporal orchestration, restart durability, receipt binding, and uncertain-send refusal for synthetic transport. It does **not** prove a fresh connector-selected ChatGPT task or real same-chat correction initiated by Temporal. The next live browser task requires an explicit, bounded report-only contract and acceptance criteria; Sashai product implementation remains blocked by missing active-plan/worktree authority.
 
-[Detailed run IDs, verification, limitations and reproduction commands](SASHAI-TEMPORAL-BINDING-AND-SYNTHETIC-LIFECYCLE-2026-10-15.md).
+[Detailed run IDs, verification, limitations and reproduction commands](../history/SASHAI-TEMPORAL-BINDING-AND-SYNTHETIC-LIFECYCLE-2026-10-15.md).
 
 ## Evidence hardening and Temporal restart proof — 2026-10-15
 
@@ -23,17 +23,17 @@ These gaps are now addressed for **new** report attempts: both first-turn and co
 
 A dedicated Temporal workflow, `sashaiReportLifecycle`, on queue `oracle-sashai-report-review`, adopted the sealed send/correction claims without invoking the browser. Workflow `sashai-report-review-8f64480c627c2605c58f` survived dedicated worker shutdown/restart in `waiting_for_durable_resume`, then completed after a signal at `verified_approval_boundary` with `dispatchPermitted=false` and `nextTaskPermitted=false`. This **proves restart-safe observation and re-verification**, not Temporal-owned browser dispatch or automatic corrective sends.
 
-Technical evidence: [SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md](SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md). Next is a separately approved disposable task to demonstrate Temporal-managed connector-aware submission, failed-acceptance correction and independent completion. General Sashai implementation remains paused without an approved active plan.
+Technical evidence: [../history/SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md](../history/SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md). Next is a separately approved disposable task to demonstrate Temporal-managed connector-aware submission, failed-acceptance correction and independent completion. General Sashai implementation remains paused without an approved active plan.
 
 ## First supervised report task verified — 2026-10-15
 
 **Report-only task accepted:** The owner-approved Sashai architecture review was dispatched exactly once in Helium Profile 4 to a fresh `dr/sashai` ChatGPT chat with **Remote Desktop Commander selected in the composer**. This was a source-backed report task, not implementation of the Sashai roadmap, and it did **not** activate an execution plan.
 
 - **Report chat:** https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d-dr-sashai/c/6acfe3ee-ad30-83eb-b92e-fa069ac9ee6e
-- **Approved contract:** [SASHAI-ARCHITECTURE-REVIEW-TASK.md](SASHAI-ARCHITECTURE-REVIEW-TASK.md) (immutable snapshot; initial NOT DISPATCHED status was correct when created).
-- **Independent reference:** [SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md), created directly through repository tools.
-- **Browser-produced and independently accepted report:** [SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md), 205 lines, 22,623 bytes, SHA-256 `4637e824aa9b2b2ac865c93b1a9040a1b21f86e539e3253a00cb4ece36f14ba0`.
-- **Execution receipt:** [SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md) and ignored local `.state/report-review-dispatch/acceptance.json`.
+- **Approved contract:** [../SASHAI-ARCHITECTURE-REVIEW-TASK.md](../SASHAI-ARCHITECTURE-REVIEW-TASK.md) (immutable snapshot; initial NOT DISPATCHED status was correct when created).
+- **Independent reference:** [../history/SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](../history/SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md), created directly through repository tools.
+- **Browser-produced and independently accepted report:** [../SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](../SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md), 205 lines, 22,623 bytes, SHA-256 `4637e824aa9b2b2ac865c93b1a9040a1b21f86e539e3253a00cb4ece36f14ba0`.
+- **Execution receipt:** [../history/SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md](../history/SASHAI-ARCHITECTURE-REVIEW-EXECUTION-2026-10-15.md) and ignored local `.state/report-review-dispatch/acceptance.json`.
 - **Live evidence:** the passive watcher auto-adopted the running chat as `single_running_chat`; local Desktop Commander history independently shows `write_file` for the exact report at 01:26:41 and `edit_block` at 01:30:28 local time. A *separate guarded same-chat correction* removed inline HTML breaks from Mermaid diagrams; no blind prompt replay occurred.
 - **Verifier:** 16 content requirements passed, all required source paths exist at HEAD, exact Git SHA unchanged (`7d2cc6818afe837119e0c171928506b1c4967269`), full Sashai status and tracked diff fingerprints unchanged, tool-history binding confirmed; status `verified_report` with no outstanding acceptance failures.
 - **Flowdeck:** read-only `/api/sashai/status` now contains separate `reportTask.status`, and `/api/sashai/report` displays only the SHA-verified Markdown. The product task state remains `unverified`, the active-plan gate remains `no_active_plan`, and generalized automated task dispatch is **disabled**.
@@ -74,7 +74,7 @@ Technical evidence: [SASHAI-TEMPORAL-REVIEW-RECOVERY-2026-10-15.md](SASHAI-TEMPO
 
 Confirmed root cause: Oracle's old ChatGPT turn/assistant-role DOM selectors return zero nodes for Sashai, even though the authenticated Helium UI has the submitted user turn and assistant answer. The original error probe captured `composerCleared=true`, `turnsCount=0`, `userMatched=false`. A read-only CDP probe finds 2 turns using the current `h4.sr-only` headings, and 0 turns with the stock Oracle selector. This was a false negative in Oracle 0.21.3, **not** permission to replay the prompt. Oracle 0.21.5 resolves the fresh-session capture and normal followup cases tested above; manual-chat adoption remains a separate gate.
 
-`node scripts/oracle-sashai.mjs diagnose <existing-slug>` saves privacy-safe local evidence. Future adapter runs now use Oracle `--verbose`, `--heartbeat 5`, and `--perf-trace-path` with logs saved in ignored `.state/` (use `ORACLE_DEBUG=0` to disable). Investigation and remaining acceptance criteria: [ORACLE-PROMPT-COMMIT-RCA.md](ORACLE-PROMPT-COMMIT-RCA.md). The debug investigations did not start new ChatGPT tasks.
+`node scripts/oracle-sashai.mjs diagnose <existing-slug>` saves privacy-safe local evidence. Future adapter runs now use Oracle `--verbose`, `--heartbeat 5`, and `--perf-trace-path` with logs saved in ignored `.state/` (use `ORACLE_DEBUG=0` to disable). Investigation and remaining acceptance criteria: [../history/ORACLE-PROMPT-COMMIT-RCA.md](../history/ORACLE-PROMPT-COMMIT-RCA.md). The debug investigations did not start new ChatGPT tasks.
 
 ## Execution architecture
 
@@ -214,9 +214,9 @@ The owner explicitly confirmed Oracle stays and Repo Harness leaves the active s
 
 Approved next task: architectural/current-work review of Sashai, including repository guide, recent commit timeline, source-backed diagrams and a report. It is report-only, not implementation of the product roadmap.
 
-- Scope/task contract: [SASHAI-ARCHITECTURE-REVIEW-TASK.md](SASHAI-ARCHITECTURE-REVIEW-TASK.md).
-- Independent reference review completed through direct repository tools: [SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md).
-- Browser-produced output: **dispatched and verified subsequently** — [SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md). See the execution receipt above.
+- Scope/task contract: [../SASHAI-ARCHITECTURE-REVIEW-TASK.md](../SASHAI-ARCHITECTURE-REVIEW-TASK.md).
+- Independent reference review completed through direct repository tools: [../history/SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md](../history/SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md).
+- Browser-produced output: **dispatched and verified subsequently** — [../SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md](../SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md). See the execution receipt above.
 - Reviewed Sashai HEAD: 7d2cc6818afe837119e0c171928506b1c4967269. Latest delivered slice is the four-area shell; spec labels and uncommitted research/priority overrides need reconciliation.
 - Both active execution markers remain absent; existing Sashai dirty documentation and research artifacts were left untouched.
 

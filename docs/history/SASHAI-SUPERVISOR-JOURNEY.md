@@ -2,7 +2,7 @@
 
 Date: 2026-10-14
 Status: target journey. **Oracle 0.21.5 creates new Sashai chats and continues an Oracle-created chat successfully; CDP passive observation and guarded automatic adoption are implemented.** One browser-originated manual-chat smoke was adopted while active, invoked Desktop Commander and was successfully continued by Oracle 0.21.5. Production connector preselection in an Oracle-created next-task chat, task verification and autonomous next-task dispatch remain unimplemented.
-Current implementation plan: [ORACLE-SASHAI-SUPERVISOR-PLAN.md](ORACLE-SASHAI-SUPERVISOR-PLAN.md).
+Current implementation plan: [../plans/ORACLE-SASHAI-SUPERVISOR-PLAN.md](../plans/ORACLE-SASHAI-SUPERVISOR-PLAN.md).
 
 ## 1. What the owner does
 

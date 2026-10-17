@@ -3,9 +3,9 @@
 Date: 2026-10-15
 Status: **verified_report** — independently accepted, report-only task. Not implementation acceptance.
 Task: `sashai-architecture-report-2026-10-15`
-Approval: [approved report-only task contract](SASHAI-ARCHITECTURE-REVIEW-TASK.md)
+Approval: [approved report-only task contract](../SASHAI-ARCHITECTURE-REVIEW-TASK.md)
 Independent pre-dispatch reference: [repository-tool review](SASHAI-ARCHITECTURE-REVIEW-2026-10-15.md)
-Browser-produced artifact: [accepted architecture report](SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md)
+Browser-produced artifact: [accepted architecture report](../SASHAI-BROWSER-ARCHITECTURE-REVIEW-2026-10-15.md)
 
 ## Exact binding and execution
 
