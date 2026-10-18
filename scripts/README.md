@@ -29,7 +29,7 @@ Start with `--help` where supported and the [human runbook](../docs/FLOWDECK_HUM
 
 ## Controlled test harnesses
 
-- `flowdeck-pilot-budget-smoke.mjs`: real Temporal, unique queues, fake browser activities. Scenario names are documented in the human runbook.
+- `flowdeck-pilot-budget-smoke.mjs`: real Temporal, unique queues, fake browser activities. Available scenarios include `happy`, `second-continuation`, `next-failure` and `publisher-offline`; use an isolated test server.
 - `flowdeck-supervisor-smoke.mjs`: real Temporal synthetic scenarios, including publication outages.
 - `flowdeck-autonomy-runtime.mjs`: **synthetic only**, real Temporal and autonomous workflow with isolated fake-browser and fake-source effects, durable provenance, closeout and same-run restart. Use `--mode=synthetic --manifest=ABSOLUTE_TEMP_FILE --non-interactive` or `node --test tests/flowdeck-autonomy-runtime.test.mjs`; it is not a live sender.
 - `flowdeck-browser-check.mjs`: **real browser mutation without Send**; creates an owned tab, stages/clears its transport draft, and closes it. Never run alongside a live sender.

@@ -9,7 +9,7 @@ Deliver this in two milestones, not as an all-day production system in one jump:
 1. **Attended MVP:** one manual initial Send; automatic observation, one P1 continuation when needed, and one independent P2 in another chat.
 2. **Bounded autonomous MVP:** automatic initial Send as well, followed by the configured sequence and verified automatic closeout, without human browser intervention.
 
-A recorded October 18 attended demonstration completed with external review pending. That is historical evidence, not a fresh validation of current working-tree bytes. The ordinary autonomous live entrypoint remains blocked without a fully registered production runtime. Many implementations exist in the working tree; this documentation cleanup is not a commit or release of those runtime changes.
+A recorded October 18 attended demonstration completed with external review pending. That is historical evidence, not a fresh validation of current working-tree bytes. The ordinary autonomous live entrypoint remains blocked without a fully registered production runtime. The corrective runtime implementation is now versioned in Git. Source versioning is not a live-operation certificate or activation.
 
 ## What to do next
 
@@ -47,16 +47,16 @@ Wire `scripts/flowdeck-run.mjs` through the real activity registry and `createPr
 Use `createProductionSourceCursorStore()` from `src/flowdeck-autonomy-production-cursor.ts` and `createSenderProcessFence()` from `src/flowdeck-autonomy-production-process.ts` in the executable path. Their existence and separate tests do not establish production registration.
 
 - Bind the checkpoint to exact source/owner/device/workflow/run; preserve its original seed on restart.
-- Enforce exclusive follower ownership for its lifetime. The cursor's per-update lock is not that ownership mechanism.
+- The persistent cross-process follower ownership implementation now guards startup, admission and checkpointing. Integrate it with the actual upstream deployment and demonstrate stale-owner recovery; the cursor's per-update lock alone remains insufficient.
 - Demonstrate upstream cursor ordering/continuation semantics; rejection of repeated tokens does not order distinct opaque tokens.
 - Register actual send-capable process identities before activation. An SDK shutdown promise alone does not prove all senders are drained.
 - Unknown existing browser ownership blocks activation rather than silently adopting or terminating another process.
 
 ### 2. Test the same composition
 
-Extend `tests/flowdeck-autonomy-production-composition.test.mjs` rather than create another toy runtime. Use the real Temporal workflow/controller/registry/finalizer with the actual disk cursor and process fence together, controlled fake browser/source effects, temporary state and isolated queues.
+`tests/flowdeck-autonomy-production-composition.test.mjs` now combines the real Temporal workflow/controller/registry/finalizer with the actual disk cursor, ownership and process-fence factories, controlled fake browser/source effects, temporary state and a test-owned process. Preserve this composition and extend its fault coverage rather than create another toy runtime. The four-case pass reported by the corrective campaign is synthetic integration evidence, not live acceptance.
 
-Required assertions:
+Acceptance matrix to maintain and complete (not a claim that all items are covered by the current four cases):
 
 - Three-send synthetic success, correct chat split and real retirement receipt.
 - Lost click acknowledgement produces no second click or speculative next task.
@@ -72,7 +72,7 @@ Do not count a skipped integration test as a pass. Assert actual factory calls a
 
 ### 3. Keep the runner noninteractive
 
-Extend `scripts/flowdeck-check.mjs`: explicit profile, closed stdin, bounded child lifetimes, isolated resources, stage results and aggregate failure evidence. Add the same-composition suite to explicit acceptance selection; the existing synthetic smoke selection alone is not equivalent.
+`scripts/flowdeck-check.mjs` now includes the same-composition suite in synthetic acceptance, checks required test counts/no-skips, and records expected/executed stages plus artifact digests. Synthetic execution requires a reachable explicitly attested test-only Temporal endpoint, not the ordinary local port. Maintain closed stdin, bounded child lifetimes and fail-fast evidence; do not weaken completeness checks to obtain a pass.
 
 Offline/synthetic modes must not construct live send adapters. Never promote a blocked test to live mode. Authentication is setup; an expired login produces a blocker, not an infinite confirmation loop.
 
