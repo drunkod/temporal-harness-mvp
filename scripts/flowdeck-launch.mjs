@@ -35,6 +35,10 @@ export async function launch(projectId, configPath, deps = {}, attempt) {
   // even when two launcher processes pass this check at the same instant.
   if ((await (deps.inspectScope ?? inspectAttemptScope)(root,project)).occupied)
     throw Error('Browser-owner scope already claimed; audited reconciliation required');
+  // Never start the 30-minute attended timer without an independently created,
+  // read-only-verified empty Project target. Old sessions cannot serve as P1 tabs.
+  if (project.id.startsWith('sashai-fresh-attended-'))
+    await (deps.verifyPrepared ?? (await import('./flowdeck-prepare-manual-start.mjs')).verifyPreparedSurface)(project);
   const env = { ...process.env, TEMPORAL_ADDRESS: config.address ?? '127.0.0.1:7233',
     TEMPORAL_NAMESPACE: config.namespace ?? 'default' };
   const spawnChild = deps.spawn ?? spawn, execute = deps.exec ?? exec;

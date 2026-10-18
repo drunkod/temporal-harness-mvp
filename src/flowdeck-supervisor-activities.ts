@@ -8,8 +8,14 @@ import { createSupervisorProjectLoader, type ApprovedTask, type SupervisorProjec
 import type { WorkEventV1 } from './flowdeck-work-events.js';
 import { ApplicationFailure, Context } from '@temporalio/activity';
 import { createSendRecoveryStore, sanitizeSendCause, sendEventHash, sendPhaseHash, type SendRecoveryAuthorization } from './flowdeck-send-recovery.js';
+import {readPreparedManualStart,inspectPreparedFirstMessage} from './flowdeck-manual-start.js';
 export { loadSupervisorProject } from './flowdeck-projects.js';
 export type { ApprovedTask, SupervisorProject } from './flowdeck-projects.js';
+
+/** Canonical attended/autonomous task prompt. The phase controls only the first sentence. */
+export function supervisedTaskPrompt(p: SupervisorProject, t: ApprovedTask, phase: 'initial' | 'continue') {
+  return `${phase === 'continue' ? 'Continue ONLY the current task in this same conversation.' : 'Implement ONLY this approved task in this new project conversation.'}\nRepository/worktree: ${p.repo}\nTask ID: ${t.id}\nTask title: ${t.title}\n${t.instruction}\nFollow AGENTS.md and the explicit active-plan/worktree routing. Do not select another task or change authority markers. This is implementation supervision, not acceptance or code review. At the start of EVERY supervised turn, including this turn and every continuation of the same task, call the existing Probe RemoteMCP2 begin_work tool before any implementation/device work. Start a NEW work session with a fresh UUID requestKey each turn; retain its returned workId and never reuse a previous turn's workId. At the end of this turn, call the existing Probe RemoteMCP2 finish_work tool exactly once with that workId and a factual summary and known workingDirectory. Use outcome partial for unfinished work (FLOWDECK_STATUS: continue), success only for implementation_done, or failed for a blocking failure (needs_attention); these are agent reports, not independent verification or acceptance. Call finish_work before the final answer's status marker, and put nothing after the marker. End your answer with exactly one last line: FLOWDECK_STATUS: continue, FLOWDECK_STATUS: implementation_done, or FLOWDECK_STATUS: needs_attention (choose one).`;
+}
 
 export type WorkBinding = { projectId: string; taskId: string; chatUrl: string; tabId: string; workId: string };
 export type WorkObservation = { turn: 'running' | 'finished' | 'unknown';
@@ -201,6 +207,11 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
   }
   async function adoptStartedWork(p: SupervisorProject, e: SupervisorEvent, t: ApprovedTask, expectedBinding?: WorkBinding): Promise<WorkBinding | AdoptionWaiting> {
     await authorized(p, t); eventScope(p, e, 'work_started');
+    // Only fresh, owner-started P1 requires a pre-approved empty tab and first-message
+    // seal. Other tasks use the existing post-send journal/binding reconciliation.
+    const preparedInitial = p.id.startsWith('sashai-fresh-attended-') && t.id === p.initialTaskId &&
+      (!expectedBinding || expectedBinding.workId === e.workId)
+      ? await readPreparedManualStart(base, p, t) : null;
     if (expectedBinding && (expectedBinding.projectId !== p.id || expectedBinding.taskId !== t.id ||
         !expectedBinding.tabId || parseSashaiChatUrl(expectedBinding.chatUrl).url !== expectedBinding.chatUrl))
       throw new SupervisorAmbiguityError('Expected binding project/task/chat mismatch');
@@ -208,6 +219,8 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
       b.tabId === expectedBinding.tabId && b.chatUrl === expectedBinding.chatUrl && b.taskId === expectedBinding.taskId;
     const existing = await read<RecordBinding>(file('binding', [p.id, e.workId]));
     if (existing) {
+      if (preparedInitial && existing.binding.tabId !== preparedInitial.tabId)
+        throw new SupervisorAmbiguityError('Previously bound P1 differs from prepared new tab');
       if (existing.binding.taskId !== t.id) throw new SupervisorAmbiguityError('Work already bound to another task');
       if (!matchesExpected(existing.binding)) throw new SupervisorAmbiguityError('Running work does not match expected binding');
       await record(p, existing.binding); return existing.binding;
@@ -215,6 +228,8 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
     const active = await read<WorkBinding>(file('task', [p.id, t.id]));
     if (active && !matchesExpected(active)) throw new SupervisorAmbiguityError('Task does not match expected binding');
     const intended = expectedBinding ?? active;
+    if (preparedInitial && intended && intended.tabId !== preparedInitial.tabId)
+      throw new SupervisorAmbiguityError('Initial P1 pinned binding differs from prepared tab');
     if (!active && !expectedBinding && t.id !== p.initialTaskId)
       throw new SupervisorAmbiguityError('Initial adoption must use configured initialTaskId');
     const initialPinned = Boolean(expectedBinding && expectedBinding.workId === e.workId && t.id === p.initialTaskId);
@@ -247,6 +262,8 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
     const candidate = running[0];
     if (candidate) {
       const url = parseSashaiChatUrl(candidate.tab.url).url;
+      if (preparedInitial && candidate.tab.id !== preparedInitial.tabId)
+        throw new SupervisorAmbiguityError('Running P1 is on an unprepared browser tab');
       if (intended && (candidate.tab.id !== intended.tabId || url !== intended.chatUrl))
         throw new SupervisorAmbiguityError('Running work does not match expected binding');
       const identity = await identityOf(candidate.tab, candidate.s);
@@ -256,6 +273,13 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
         return { status: 'waiting', reason: identity ? 'answer_pending' : 'not_hydrated', binding: intended ?? pinned };
       }
       if (!identity) return { status: 'waiting', reason: 'answer_pending', binding: intended ?? { projectId: p.id, taskId: t.id, chatUrl: url, tabId: candidate.tab.id, workId: e.workId } };
+      if (preparedInitial) {
+        const verdict = inspectPreparedFirstMessage(preparedInitial,p,t,{
+          tabId:candidate.tab.id,chatUrl:url,projectUrl:identity.projectUrl,
+          taskId:identity.taskId,worktree:identity.worktree,userTurns:identity.latestUserTurns,
+          firstUserHash:identity.originalUserHash,observedUserTurns:candidate.s.userTurns});
+        if (verdict==='pending')return {status:'waiting',reason:'not_hydrated',...(intended ? {binding:intended} : {})};
+      }
       if (identity.taskId !== t.id || identity.worktree === null || !identity.worktree.startsWith('/') || resolve(identity.worktree) !== resolve(p.repo) || !sameProject(identity.projectUrl, p.projectUrl) || identity.tabId !== candidate.tab.id)
         throw new SupervisorAmbiguityError('Original visible task/worktree identity is missing or ambiguous');
       if (!initialPinned && expectedBinding && (identity.latestUserHash !== expectedRecord!.expectedPromptHash || identity.latestUserTurns !== expectedRecord!.users || candidate.s.userTurns !== expectedRecord!.users))
@@ -265,9 +289,27 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
     if (!candidate) {
       const validFinished: Array<{ tab: Awaited<ReturnType<typeof list>>[number]; s: PageObservation }> = [];
       for (const item of finished) {
+        if (preparedInitial && item.tab.id !== preparedInitial.tabId)continue;
         const identity = await identityOf(item.tab, item.s);
         if (intended && (item.tab.id !== intended.tabId || parseSashaiChatUrl(item.tab.url).url !== intended.chatUrl)) continue;
+        if (intended) {
+          // Redacted identity/hydration diagnostics only. Do not log messages, URLs, IDs or hashes.
+          console.info(JSON.stringify({event:'flowdeck.pinned_identity_observation',observedAt:new Date().toISOString(),
+            task:!identity||identity.taskId===null?'missing':identity.taskId===t.id?'matches':'conflicts',
+            tab:!identity?'unavailable':identity.tabId===item.tab.id?'matches':'conflicts',
+            project:!identity?'unavailable':sameProject(identity.projectUrl,p.projectUrl)?'matches':'conflicts',
+            worktree:!identity||identity.worktree===null?'missing':identity.worktree.startsWith('/')&&
+              resolve(identity.worktree)===resolve(p.repo)?'matches':'conflicts'}));
+        }
         if (!identity) { if (intended || item.s.userTurns > 0) pendingIdentity = true; continue; }
+        if (preparedInitial) {
+          const verdict = inspectPreparedFirstMessage(preparedInitial,p,t,{
+            tabId:item.tab.id,chatUrl:parseSashaiChatUrl(item.tab.url).url,
+            projectUrl:identity.projectUrl,taskId:identity.taskId,worktree:identity.worktree,
+            userTurns:identity.latestUserTurns,firstUserHash:identity.originalUserHash,
+            observedUserTurns:item.s.userTurns});
+          if (verdict==='pending'){pendingIdentity=true;continue;}
+        }
         if (intended && item.tab.id === intended.tabId && parseSashaiChatUrl(item.tab.url).url === intended.chatUrl) {
           // A DOM identity object can exist before its task line is readable.
           // Missing evidence may wait, but an observed conflict must never be retried as hydration.
@@ -320,7 +362,7 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
     return result;
   }
   function prompt(p: SupervisorProject, t: ApprovedTask, phase: string) {
-    return `${phase === 'continue' ? 'Continue ONLY the current task in this same conversation.' : 'Implement ONLY this approved task in this new project conversation.'}\nRepository/worktree: ${p.repo}\nTask ID: ${t.id}\nTask title: ${t.title}\n${t.instruction}\nFollow AGENTS.md and the explicit active-plan/worktree routing. Do not select another task or change authority markers. This is implementation supervision, not acceptance or code review. At the start of EVERY supervised turn, including this turn and every continuation of the same task, call the existing Probe RemoteMCP2 begin_work tool before any implementation/device work. Start a NEW work session with a fresh UUID requestKey each turn; retain its returned workId and never reuse a previous turn's workId. At the end of this turn, call the existing Probe RemoteMCP2 finish_work tool exactly once with that workId and a factual summary and known workingDirectory. Use outcome partial for unfinished work (FLOWDECK_STATUS: continue), success only for implementation_done, or failed for a blocking failure (needs_attention); these are agent reports, not independent verification or acceptance. Call finish_work before the final answer's status marker, and put nothing after the marker. End your answer with exactly one last line: FLOWDECK_STATUS: continue, FLOWDECK_STATUS: implementation_done, or FLOWDECK_STATUS: needs_attention (choose one).`;
+    return supervisedTaskPrompt(p, t, phase === 'continue' ? 'continue' : 'initial');
   }
   async function send(p: SupervisorProject, t: ApprovedTask, e: SupervisorEvent, phase: 'continue' | 'next', previous: WorkBinding, recovery?: SendRecoveryAuthorization): Promise<WorkBinding> {
     await authorized(p, t); eventScope(p, e, 'work_reported');
@@ -460,11 +502,23 @@ export function createSupervisorActivities(options: SupervisorActivityOptions = 
       return { status: 'pending', binding: current, expectedUserTurns: r.users, promptHash: r.expectedPromptHash ?? '' };
     const s = await observe(current.chatUrl);
     const identity = options.readIdentity ? await options.readIdentity(current.chatUrl, current.tabId) : s.identity;
-    if (identity && (identity.tabId !== current.tabId || !sameProject(identity.projectUrl, p.projectUrl) || identity.worktree === null || !identity.worktree.startsWith('/') || resolve(identity.worktree) !== resolve(p.repo) || identity.taskId !== current.taskId))
-      throw new SupervisorAmbiguityError('Submitted target identity changed');
-    if (!identity || !identity.latestUserHash) return { status: 'pending', binding: current, expectedUserTurns: r.users, promptHash: r.expectedPromptHash ?? '' };
-    if (identity.latestUserTurns > r.users || s.userTurns > r.users)
+    if (identity) {
+      // A newly submitted Project chat can expose its tab and URL before the user
+      // message has hydrated. Missing task/worktree/Project evidence is not a
+      // conflicting identity and must NOT finish the bounded reconciliation.
+      // Real non-null mismatches still fail closed, without another browser Send.
+      if (identity.tabId !== current.tabId ||
+          (identity.projectUrl !== '' && !sameProject(identity.projectUrl, p.projectUrl)) ||
+          (identity.worktree !== null && (!identity.worktree.startsWith('/') || resolve(identity.worktree) !== resolve(p.repo))) ||
+          (identity.taskId !== null && identity.taskId !== current.taskId))
+        throw new SupervisorAmbiguityError('Submitted target identity changed');
+    }
+    // Positive evidence of an extra user turn is a conflict even if the
+    // remaining identity fields have not hydrated yet. Do not wait it away.
+    if ((identity?.latestUserTurns ?? 0) > r.users || s.userTurns > r.users)
       throw new SupervisorAmbiguityError('Submitted target has an extra user turn');
+    if (!identity || identity.taskId === null || identity.worktree === null || !identity.projectUrl || !identity.latestUserHash)
+      return { status: 'pending', binding: current, expectedUserTurns: r.users, promptHash: r.expectedPromptHash ?? '' };
     if (identity.latestUserTurns < r.users || s.browser !== 'attached_read_only' || s.tabId !== current.tabId || s.userTurns !== r.users)
       return { status: 'pending', binding: current, expectedUserTurns: r.users, promptHash: r.expectedPromptHash ?? '' };
     if (!r.expectedPromptHash || identity.latestUserHash !== r.expectedPromptHash)

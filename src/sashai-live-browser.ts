@@ -1,5 +1,8 @@
 import {spawn,execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {readFile} from 'node:fs/promises';
+import {homedir} from 'node:os';
+import {join} from 'node:path';
 import {composerPayloadFor,FLOWDECK_CONNECTOR_LABEL} from './sashai-dispatch-evidence.js';
 import {parseSashaiChatUrl} from './sashai-observer.js';
 
@@ -8,6 +11,7 @@ export type BrowserTarget={id:string;type:string;url:string;webSocketDebuggerUrl
 export interface ToolCallEvidence {id:string;connector:string;operation:string;path:string;completed:boolean}
 export interface BrowserEvidence {tool:boolean;reply:boolean;marker:boolean;source:boolean;
  calls:ToolCallEvidence[];turnId:string|null;promptMatched:boolean;turnState:string}
+export interface InitialFirstUserTurn {matched:boolean;turnId:string|null}
 export type BrowserReadinessSnapshot={routeMatches:boolean;documentReadyState:string;visibleComposerCount:number;visibleButtonCount:number;pickerVisible:boolean;pickerExpanded:boolean;exactConnectorButtons:number;prefixConnectorButtons:number;otherRoleConnectorMatches:number;menuCount:number;dialogCount:number;selectedConnector:boolean;busy:boolean};
 export type BrowserDiagnostic={check:string;reason:string;tabId:string;expected:string;observed?:string;elapsedMs?:number;readiness?:BrowserReadinessSnapshot};
 export interface LiveBrowser {
@@ -18,6 +22,7 @@ export interface LiveBrowser {
  matches(tab:BrowserTarget,url:string,prompt:string):Promise<boolean>;
  click(tab:BrowserTarget,url:string,prompt:string,deadline:number,check?:()=>void):Promise<boolean>;
  chat(id:string):Promise<{url:string;id:string}|null>;
+ firstUserTurn?(id:string,url:string,prompt:string):Promise<InitialFirstUserTurn>;
  evidence(id:string,url:string,marker:string,output:string,prompt:string):Promise<BrowserEvidence>;
 }
 const wait=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
@@ -33,7 +38,7 @@ export async function browserPages():Promise<BrowserTarget[]> {
  if(!r.ok)throw Error('Helium debugging port not available');
  return await r.json() as BrowserTarget[];
 }
-export async function browserEvaluate(tab:BrowserTarget,expression:string):Promise<unknown> {
+export async function browserEvaluate(tab:BrowserTarget,expression:string,checkBeforeDispatch?:()=>void):Promise<unknown> {
  if(!tab.webSocketDebuggerUrl)throw Error('No CDP WebSocket URL');
  const socket=new WebSocket(tab.webSocketDebuggerUrl);
  return await new Promise((resolve,reject)=>{
@@ -52,8 +57,13 @@ export async function browserEvaluate(tab:BrowserTarget,expression:string):Promi
    if(error)reject(error);else resolve(value);
   };
   const onOpen=()=>{
-   try{socket.send(JSON.stringify({id:1,method:'Runtime.evaluate',params:{expression,returnByValue:true}}))}
-   catch{finish(Error('CDP socket send failure'))}
+   let authorized=false;
+   try{
+    // Recheck cancellation immediately before the Runtime.evaluate RPC.
+    checkBeforeDispatch?.();
+    authorized=true;
+    socket.send(JSON.stringify({id:1,method:'Runtime.evaluate',params:{expression,returnByValue:true}}));
+   }catch(error){finish(authorized?Error('CDP socket send failure'):(error instanceof Error?error:Error('CDP dispatch cancelled')))}
   };
   const onMessage=(ev:MessageEvent)=>{
    let m:Record<string,any>;
@@ -92,6 +102,12 @@ async function openWindow(url:string) {
 export function confirmedToolCalls(calls:ToolCallEvidence[],output:string):ToolCallEvidence[] {
  return calls.filter(c=>Boolean(c.id)&&/^(?:(?:remote[ _-]?)?desktop[ _-]?commander|probe[ _-]?remotemcp2)$/i.test(c.connector)&&
   /^(?:write_file|edit_block)$/.test(c.operation)&&c.path===output&&c.completed===true);
+}
+/** Pure matcher used by the initial-send DOM probe; webpage text never supplies authority. */
+export function matchInitialFirstUserTurn(users:Array<{text:string;turnId?:string|null}>,prompt:string):InitialFirstUserTurn {
+ const first=users.length===1?users[0]:undefined;
+ const matched=Boolean(first&&first.turnId&&first.text.normalize('NFC').replace(/\s+/gu,' ').trim()===composerPayloadFor(prompt));
+ return {matched,turnId:matched && first ? first.turnId ?? null : null};
 }
 export function createLiveBrowser(overrides:Partial<BrowserDependencies>={}):LiveBrowser {
  const d:BrowserDependencies={pages:browserPages,evaluate:browserEvaluate,openWindow,wait,...overrides};
@@ -166,6 +182,13 @@ export function createLiveBrowser(overrides:Partial<BrowserDependencies>={}):Liv
   diagnostics:()=>trace.map(entry=>({...entry})),
   async createOwnedProjectTab(owner) {
    if(!/^[a-f0-9-]{36}$/i.test(owner))throw Error('Invalid browser ownership ID');
+   // A durable autonomous owner fences every other new Flowdeck browser target.
+   // The matching tab owner is the sole exception for its already claimed run.
+   try{
+    const claim=JSON.parse(await readFile(join(homedir(),'Library','Application Support','Flowdeck','autonomy-v1','browser-owner.lock'),'utf8'));
+    if(claim?.schema!=='flowdeck.browser-owner/v1'||claim.tabOwnerId!==owner)
+     throw Error('Machine-wide Flowdeck browser owner is claimed; reconcile before opening another target');
+   }catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
    const before=new Set((await d.pages()).map(t=>t.id));
    const url=PROJECT+'?flowdeckAttempt='+encodeURIComponent(owner);
    await d.openWindow(url);
@@ -309,11 +332,22 @@ export function createLiveBrowser(overrides:Partial<BrowserDependencies>={}):Liv
    if(staged!==true)throw Error('Full connector prompt could not be staged');
   },
   async matches(tab,url,prompt){await requireTab(tab.id,url);return await d.evaluate(tab,`(() => {${payloadCheck(url,prompt)}return valid})()` )===true;},
-  async click(tab,url,prompt,deadline,check){await requireTab(tab.id,url);check?.();return await d.evaluate(tab,`(() => {${payloadCheck(url,prompt)}if(!valid||Date.now()>${JSON.stringify(deadline)})return false;b.click();return true})()` )===true;},
+  async click(tab,url,prompt,deadline,check){await requireTab(tab.id,url);check?.();const result=await d.evaluate(tab,`(() => {${payloadCheck(url,prompt)}if(!valid||Date.now()>${JSON.stringify(deadline)})return false;b.click();return true})()` ,check);try{check?.();}catch{throw Error("CDP click outcome uncertain after cancellation: quarantine");}return result===true;},
   async chat(id){
    const tab=(await d.pages()).find(t=>t.type==='page'&&t.id===id);
    if(!tab)return null;
    try{const p=parseSashaiChatUrl(tab.url.split('?')[0]);return {url:p.url,id:p.conversationId}}catch{return null}
+  },
+  async firstUserTurn(id,url,prompt){
+   const tab=await requireTab(id,url);
+   const users=await d.evaluate(tab,`(() => {
+    if(location.origin!=='https://chatgpt.com'||location.pathname!==${JSON.stringify(new URL(url).pathname)})throw Error('Chat changed');
+    const normal=v=>v.normalize('NFC').replace(/\\s+/gu,' ').trim();
+    return [...document.querySelectorAll('[data-message-author-role="user"]')].map(e=>({
+     text:normal(e.innerText||''),turnId:e.getAttribute('data-message-id')||e.closest('[data-message-id]')?.getAttribute('data-message-id')||null
+    }));
+   })()`) as Array<{text:string;turnId:string|null}>;
+   return matchInitialFirstUserTurn(users,prompt);
   },
   async evidence(id,url,marker,output,prompt){
    const tab=await requireTab(id,url);

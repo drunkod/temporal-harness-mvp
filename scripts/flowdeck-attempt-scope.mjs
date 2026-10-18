@@ -5,6 +5,7 @@
 import {createHash} from 'node:crypto';
 import {mkdir,open,readFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
+import {homedir} from 'node:os';
 
 const part=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,120}$/.test(value);
 export function attemptScopePath(base,{deviceId,profile='helium-profile-4'}){
@@ -14,6 +15,12 @@ export function attemptScopePath(base,{deviceId,profile='helium-profile-4'}){
 }
 export async function inspectAttemptScope(base,scope){
  const file=attemptScopePath(base,scope);
+ const machineOwner=join(homedir(),'Library','Application Support','Flowdeck','autonomy-v1','browser-owner.lock');
+ try{
+  const record=JSON.parse(await readFile(machineOwner,'utf8'));
+  if(record?.schema!=='flowdeck.browser-owner/v1')throw Error('Machine-wide Flowdeck browser-owner record is invalid; quarantine');
+  return {occupied:true,path:machineOwner,record,writes:false};
+ }catch(e){if(e?.code!=='ENOENT')throw e;}
  try{return {occupied:true,path:file,record:JSON.parse(await readFile(file,'utf8')),writes:false};}
  catch(e){if(e?.code==='ENOENT')return {occupied:false,path:file,writes:false};throw e;}
 }

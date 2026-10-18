@@ -842,3 +842,112 @@ test('marker-less completion report cannot authorize the next task',async t=>{
  assert.equal(f.effects.stages.length,0);
  assert.equal(f.effects.clicks,0);
 });
+
+test('post-send P2 hydration waits for missing task, worktree or Project identity; observed conflicts still refuse', async t => {
+  const f=await fixture(t), first=await f.adopt(), report=event();
+  f.finish('FLOWDECK_STATUS: implementation_done');
+  await f.api.observeWorkResult(f.project,first,report);
+  const sent=await f.api.startNextTaskOnce(f.project,f.project.tasks[1],first,report);
+  const checkpoint=await bindingRecord(f,sent.workId);
+  assert.equal(checkpoint.pending,true);
+  for(const [key,value] of [['taskId',null],['worktree',null],['projectUrl','']]){
+    f.effects.identityOverrides={[key]:value};
+    const r=await f.api.reconcileSubmittedTurn(f.project,sent);
+    assert.equal(r.status,'pending',key+' hydration is pending');
+    assert.equal(f.effects.clicks,1,'no duplicate send');
+    assert.equal((await bindingRecord(f,sent.workId)).ready,false,'not marked ready without complete identity');
+  }
+  for(const [key,value] of [['taskId','another-approved-task'],['worktree','/unrelated/worktree'],
+    ['projectUrl','https://chatgpt.com/g/not-this-project/project'],['tabId','another-tab']]){
+    f.effects.identityOverrides={[key]:value};
+    await assert.rejects(f.api.reconcileSubmittedTurn(f.project,sent),/Submitted target identity changed/,key);
+    assert.equal(f.effects.clicks,1,'conflicting identity never sends again');
+  }
+  f.effects.identityOverrides={};
+  const valid=await f.api.reconcileSubmittedTurn(f.project,sent);
+  assert.equal(valid.status,'ready');
+  assert.equal((await bindingRecord(f,sent.workId)).ready,true);
+  assert.equal(f.effects.clicks,1);
+});
+
+test('post-send rejects an observed extra user turn even when identity remains missing', async t => {
+  const f=await fixture(t), first=await f.adopt(), report=event();
+  f.finish('FLOWDECK_STATUS: implementation_done');
+  await f.api.observeWorkResult(f.project, first, report);
+  const sent=await f.api.startNextTaskOnce(f.project, f.project.tasks[1], first, report);
+  assert.equal(f.effects.clicks,1);
+  // Page identity is still hydrating, but its user-turn reader already sees an
+  // unexpected second user message. This is positive conflicting evidence.
+  f.effects.identityOverrides={ taskId:null, latestUserTurns:2 };
+  await assert.rejects(f.api.reconcileSubmittedTurn(f.project,sent),
+    /Submitted target has an extra user turn/);
+  assert.equal(f.effects.clicks,1,'no additional browser send');
+  // Conversely, the independent Work-layout observer may see the extra turn
+  // while the identity reader is lagging, and must still fail immediately.
+  f.effects.identityOverrides={ taskId:null,latestUserTurns:1 };
+  f.states.get(chat(2)).userTurns=2;
+  await assert.rejects(f.api.reconcileSubmittedTurn(f.project,sent),
+    /Submitted target has an extra user turn/);
+  assert.equal(f.effects.clicks,1);
+  assert.equal((await bindingRecord(f,sent.workId)).ready,false);
+});
+
+test('fresh P1 adoption requires prepared new tab, exactly one sealed approved first turn',async t=>{
+ const f=await fixture(t);
+ f.project.id='sashai-fresh-attended-20261020-07';
+ f.project.attendedPilotBudget={schema:'flowdeck.attended-pilot-budget/v1',initialTaskId:'one',nextTaskId:'two'};
+ await f.enroll();
+ const targetId='ABCDEF1234567890ABCDEF1234567890';
+ const tab=f.pages.get('original');f.pages.delete('original');f.pages.set(targetId,{...tab,id:targetId});
+ f.states.get(chat(1)).tabId=targetId;
+ const first=f.project.tasks[0],m=await import(moduleUrl('flowdeck-manual-start'));
+ const file=m.manualStartPath(f.base,f.project.id);
+ const record={schema:'flowdeck.prepared-manual-start/v1',projectId:f.project.id,
+  ownerId:f.project.ownerId,deviceId:f.project.deviceId,projectUrl:f.project.projectUrl,
+  worktree:f.project.repo,taskId:first.id,tabId:targetId,
+  originalTargetIds:['previous-tab'],hydratedEmpty:true,
+  expectedPromptHash:m.approvedFirstPromptHash(first.instruction),readyAt:'2026-10-20T00:00:00Z'};
+ await assert.rejects(f.adopt(),/no prepared distinct empty Project tab/);
+ assertNoSends(f);
+ await writeFile(file,JSON.stringify(record));
+ f.effects.identityOverrides={originalUserHash:record.expectedPromptHash,latestUserTurns:1};
+ const ok=await f.adopt();
+ assert.equal(ok.tabId,targetId);
+ assert.equal(ok.workId,'work-1');
+ assertNoSends(f);
+});
+test('fresh P1 prepared tab refuses stale and mixed chat, wrong seal, wrong target, but waits on missing content',async t=>{
+ const f=await fixture(t);
+ f.project.id='sashai-fresh-attended-20261020-07';
+ f.project.attendedPilotBudget={schema:'flowdeck.attended-pilot-budget/v1',initialTaskId:'one',nextTaskId:'two'};
+ await f.enroll();
+ const targetId='ABCDEF1234567890ABCDEF1234567890';
+ const tab=f.pages.get('original');f.pages.delete('original');f.pages.set(targetId,{...tab,id:targetId});
+ f.states.get(chat(1)).tabId=targetId;
+ const m=await import(moduleUrl('flowdeck-manual-start'));
+ const first=f.project.tasks[0],file=m.manualStartPath(f.base,f.project.id);
+ const record={schema:'flowdeck.prepared-manual-start/v1',projectId:f.project.id,
+  ownerId:f.project.ownerId,deviceId:f.project.deviceId,projectUrl:f.project.projectUrl,
+  worktree:f.project.repo,taskId:first.id,tabId:targetId,
+  originalTargetIds:['old-tab'],hydratedEmpty:true,
+  expectedPromptHash:m.approvedFirstPromptHash(first.instruction),readyAt:'2026-10-20T00:00:00Z'};
+ await writeFile(file,JSON.stringify(record));
+ const cases=[
+  {taskId:'old-pilot-p1',originalUserHash:record.expectedPromptHash},
+  {worktree:'/tmp/other',originalUserHash:record.expectedPromptHash},
+  {originalUserHash:'0'.repeat(64)},
+  {originalUserHash:record.expectedPromptHash,latestUserTurns:2},
+ ];
+ for(const conflict of cases){
+  f.effects.identityOverrides=conflict;
+  await assert.rejects(f.adopt(),/(conflict|extra user|does not match approved prompt seal)/);
+  assertNoSends(f);
+ }
+ f.effects.identityOverrides={taskId:null,originalUserHash:null};
+ const pending=await f.adopt();
+ assert.equal(pending.status,'waiting');assertNoSends(f);
+ f.effects.identityOverrides={originalUserHash:record.expectedPromptHash};
+ f.pages.get(targetId).id='unprepared';
+ await assert.rejects(f.adopt(),/(unprepared|no prepared|Observed tab does not match)/);
+ assertNoSends(f);
+});

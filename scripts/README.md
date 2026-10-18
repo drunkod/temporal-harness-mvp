@@ -9,7 +9,9 @@ Run scripts from the repository root after installing the locked dependencies. M
 | `check-docs.mjs` | Check inline local Markdown links in current entry docs; `--all` includes historical docs |
 | `flowdeck-fresh-pilot-preflight.mjs` | Read-only preparation proposal checks; does not authorize launch |
 | `flowdeck-replay-check.mjs` | Fetch an exact Temporal history and replay locally; does not start that workflow |
+| `flowdeck-autonomy-replay-check.mjs` | Read-only exact autonomous Temporal history replay; no workflow starts, signals or browser actions |
 | `flowdeck-predecessor-readiness.mjs` | Read-only predecessor evidence evaluator used by reconciliation |
+| `flowdeck-observation-probe.mjs` | Read-only exact-tab rendering diagnostics; no raw conversation text, scrolling, refresh, adoption or Send |
 
 ## Active runtime (side-effecting)
 
@@ -29,6 +31,7 @@ Start with `--help` where supported and the [human runbook](../docs/FLOWDECK_HUM
 
 - `flowdeck-pilot-budget-smoke.mjs`: real Temporal, unique queues, fake browser activities. Scenario names are documented in the human runbook.
 - `flowdeck-supervisor-smoke.mjs`: real Temporal synthetic scenarios, including publication outages.
+- `flowdeck-autonomy-runtime.mjs`: **synthetic only**, real Temporal and autonomous workflow with isolated fake-browser and fake-source effects, durable provenance, closeout and same-run restart. Use `--mode=synthetic --manifest=ABSOLUTE_TEMP_FILE --non-interactive` or `node --test tests/flowdeck-autonomy-runtime.test.mjs`; it is not a live sender.
 - `flowdeck-browser-check.mjs`: **real browser mutation without Send**; creates an owned tab, stages/clears its transport draft, and closes it. Never run alongside a live sender.
 - `flowdeck-browser-test-draft.mjs`: owned transport-draft cleanup helper, not a general owner-draft deletion tool.
 

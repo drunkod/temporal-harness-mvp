@@ -242,3 +242,26 @@ test('launcher rejects occupied device/profile before spawning a worker or runni
  assert.equal(h.children.length,0);
  assert.equal(h.signals.listenerCount('SIGINT'),0);
 });
+
+test('fresh attended launcher must pass the prepared-empty-tab guard before even querying or spawning',async()=>{
+ const id='sashai-fresh-attended-20261020-07';
+ const config={'workflow-id':'flowdeck-supervisor-'+id,'project-id':id};
+ const h=harness({config,project:{id}});
+ let checks=0;
+ h.deps.verifyPrepared=async p=>{checks++;assert.equal(p.id,id);throw Error('prepared empty tab missing')};
+ await assert.rejects(launch(id,'/events.json',h.deps),/prepared empty tab missing/);
+ assert.equal(checks,1);
+ assert.deepEqual(h.calls,['load']);
+ assert.equal(h.children.length,0);
+ assert.ok(!h.messages.some(s=>s.includes('ALL COMPONENTS READY')));
+ const pass=harness({config,project:{id},status:{
+  workflowId:'flowdeck-supervisor-'+id,temporal:'RUNNING',
+  state:{projectId:id,phase:'waiting_for_manual_start'}
+ }});
+ let ready=0;
+ pass.deps.verifyPrepared=async p=>{ready++;assert.equal(p.id,id);return{ready:true}};
+ await launch(id,'/events.json',pass.deps);
+ assert.equal(ready,1);
+ assert.equal(pass.calls.filter(s=>s==='start').length,1);
+ assert.ok(pass.messages.includes('ALL COMPONENTS READY MANUAL START NOW'));
+});

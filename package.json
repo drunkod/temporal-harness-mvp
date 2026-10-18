@@ -33,6 +33,8 @@
     "sashai:live:status": "node scripts/sashai-live-temporal.mjs status",
     "sashai:live:worker": "node scripts/sashai-live-temporal.mjs worker",
     "sashai:live:start": "node scripts/sashai-live-temporal.mjs start",
+    "flowdeck:autonomy:preflight": "npm run build && node scripts/flowdeck-controller.mjs preflight",
+    "flowdeck:autonomy:status": "npm run build && node scripts/flowdeck-controller.mjs status",
         "supervisor:status": "node scripts/flowdeck-supervisor.mjs status",
         "supervisor:worker": "npm run build && node scripts/flowdeck-supervisor.mjs worker",
         "supervisor:start": "npm run build && node scripts/flowdeck-supervisor.mjs start",
@@ -43,6 +45,7 @@
   },
   "dependencies": {
     "@temporalio/client": "^1.24.0",
+    "@temporalio/common": "^1.24.0",
     "@temporalio/worker": "^1.24.0",
     "@temporalio/workflow": "^1.24.0",
     "@temporalio/activity": "^1.24.0"

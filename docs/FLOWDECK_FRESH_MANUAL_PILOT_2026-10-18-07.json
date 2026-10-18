@@ -1,0 +1,49 @@
+{
+  "schema": "flowdeck.pilot-proposal/v1",
+  "state": "prepared_not_authorized",
+  "executionAuthorized": false,
+  "productionEnrollment": false,
+  "id": "sashai-fresh-attended-20261018-07",
+  "projectUrl": "https://chatgpt.com/g/g-p-6ab28bdd7fbc8191b581316ff09da79d/project",
+  "browserProfile": "Helium Profile 4",
+  "connector": "Probe RemoteMCP2",
+  "proposedWorktree": "/Users/test/Documents/work/sashai-flowdeck-fresh-attended-20261018-07",
+  "proposedActivePlan": "plans/plan-flowdeck-fresh-attended-20261018-07.md",
+  "initialTaskId": "sashai-fresh-attended-p1-20261018-07",
+  "maxPlannedOwnerSubmissions": 1,
+  "maxPlannedAutomatedContinuations": 1,
+  "maxPlannedAutomatedNextTaskSubmissions": 1,
+  "taskScope": "documentation-only in separately approved disposable worktree",
+  "budgetEnforcedByWorkflow": true,
+  "tasks": [
+    {
+      "id": "sashai-fresh-attended-p1-20261018-07",
+      "title": "Fresh attended pilot P1: two-turn checkpoint",
+      "independent": true,
+      "requiresReviewBeforeNext": false,
+      "artifact": "docs/flowdeck-fresh-attended-2026-10-18-07/p1.md",
+      "instruction": "Task ID: sashai-fresh-attended-p1-20261018-07\nWorktree: /Users/test/Documents/work/sashai-flowdeck-fresh-attended-20261018-07\nThis is a documentation-only attended pilot. First call the installed Probe RemoteMCP2 begin_work hook using its actual schema, a fresh UUID requestKey and this worktree; retain the returned workId. Follow AGENTS.md and the selected active plan. Do not modify code, dependencies, Git, approval markers or any prior Flowdeck task artifacts.\nOn this owner-started first turn, create only docs/flowdeck-fresh-attended-2026-10-18-07/p1.md with heading Fresh Attended Pilot P1, this exact Task ID, a Checkpoint section stating stage 1 complete and stage 2 pending, and a Remaining work section asking for the Completion section. Stop BEFORE writing Completion. Call finish_work once for this turn's workId with outcome partial and a factual summary. End with exactly one final line: FLOWDECK_STATUS: continue\nOn the one subsequent same-conversation continuation ONLY, start a NEW begin_work session with a fresh requestKey/workId, preserve the checkpoint and append a Completion section saying stage 2 finished and external review is pending. Call finish_work once with outcome success and the NEW workId; end with exactly one final line: FLOWDECK_STATUS: implementation_done\nIf hooks, identity, or worktree do not match, make no alternate changes; finish the applicable session as failed if possible and end: FLOWDECK_STATUS: needs_attention."
+    },
+    {
+      "id": "sashai-fresh-attended-p2-20261018-07",
+      "title": "Fresh attended pilot P2: independent glossary",
+      "independent": true,
+      "requiresReviewBeforeNext": false,
+      "artifact": "docs/flowdeck-fresh-attended-2026-10-18-07/p2.md",
+      "instruction": "Task ID: sashai-fresh-attended-p2-20261018-07\nWorktree: /Users/test/Documents/work/sashai-flowdeck-fresh-attended-20261018-07\nThis is an independent documentation-only attended pilot task. At the beginning call the installed Probe RemoteMCP2 begin_work tool with its actual schema, a fresh UUID requestKey and this exact worktree; retain workId. Follow AGENTS.md and selected active plan. Do not read/change P1, old pilot files, code, Git, dependencies or approval markers.\nCreate only docs/flowdeck-fresh-attended-2026-10-18-07/p2.md with heading Fresh Attended Pilot P2, this Task ID, and definitions of work session ended (not task acceptance), implementation_done (implementation reported complete), and review_pending (external review not yet approved). Call finish_work once with outcome success, a factual summary and workId. End with exactly one final line: FLOWDECK_STATUS: implementation_done\nIf hooks/worktree/identity do not match, do not work elsewhere; finish as failed if possible and end: FLOWDECK_STATUS: needs_attention."
+    }
+  ],
+  "prerequisites": [
+    "fresh independent owner approval of worktree and active execution plan",
+    "fresh explicit owner authorization of exact build and three-send budget",
+    "code-enforced limit of one continuation and one automated P2 send",
+    "unique enrollment with the supported project and matching unchecked active-plan titles",
+    "manual preservation of P1 original tab until terminal audit",
+    "fresh review of genuine installed connector and event/follower"
+  ],
+  "attendedPilotBudget": {
+    "schema": "flowdeck.attended-pilot-budget/v1",
+    "initialTaskId": "sashai-fresh-attended-p1-20261018-07",
+    "nextTaskId": "sashai-fresh-attended-p2-20261018-07"
+  }
+}

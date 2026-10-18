@@ -325,3 +325,35 @@ test('persistently closed picker never gets a third click or a prompt insertion'
  assert.equal(pickerClicks,2);
  assert.equal(inserted,0);
 });
+
+
+test('installed CDP transport fences cancellation between initial check and delayed socket open',async()=>{
+ const original=globalThis.WebSocket;
+ let canceled=false,sent=0;
+ class PendingSocket{
+  constructor(){this.listeners=new Map();queueMicrotask(()=>{canceled=true;this.emit('open');});}
+  addEventListener(type,fn){if(!this.listeners.has(type))this.listeners.set(type,new Set());this.listeners.get(type).add(fn);}
+  removeEventListener(type,fn){this.listeners.get(type)?.delete(fn);}
+  emit(type){for(const fn of [...(this.listeners.get(type)||[])])fn({});}
+  send(){sent++;}
+  close(){}
+ }
+ globalThis.WebSocket=PendingSocket;
+ try{
+  const b=createLiveBrowser({pages:async()=>[target]});
+  await assert.rejects(b.click(target,url,prompt,Date.now()+10000,()=>{
+   if(canceled)throw Error('activity canceled');
+  }),/activity canceled/);
+  assert.equal(sent,0,'no Runtime.evaluate command may be sent after cancellation');
+ }finally{globalThis.WebSocket=original;}
+});
+
+test('cancellation after CDP command launch reports an uncertain click, never an acknowledged success',async()=>{
+ let release,launched=false,canceled=false;
+ const pending=new Promise(r=>{release=r;});
+ const b=createLiveBrowser({pages:async()=>[target],evaluate:async()=>{launched=true;await pending;return true;}});
+ const operation=b.click(target,url,prompt,Date.now()+10000,()=>{if(canceled)throw Error('cancelled');});
+ while(!launched)await Promise.resolve();
+ canceled=true;release();
+ await assert.rejects(operation,/CDP click outcome uncertain after cancellation: quarantine/);
+});
