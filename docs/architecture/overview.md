@@ -31,8 +31,8 @@ flowchart TD
 - Scoped send/recovery journal and authorization: [`src/flowdeck-send-recovery.ts`](../../src/flowdeck-send-recovery.ts)
 - Event contract: [`src/flowdeck-work-events.ts`](../../src/flowdeck-work-events.ts)
 - Browser identity and observation helpers: [`src/sashai-observer.ts`](../../src/sashai-observer.ts)
-- Current architecture/operations handoff (historical and requiring review before public release): [`FLOWDECK_NEW_ARCHITECT_HANDOFF_2026-10-15.md`](FLOWDECK_NEW_ARCHITECT_HANDOFF_2026-10-15.md)
+- Next implementation work: [single MVP plan](../plans/FLOWDECK_AUTONOMOUS_MVP_PROGRAMMER_GUIDE.md)
 
-The repository also contains synthetic lifecycle tests and historical pilot evidence. They establish only the bounded behaviors they test; they do not establish unattended or live end-to-end success. The latest P1 attempt is paused, and the isolated null-task-identity fix is not deployed.
+The repository also contains synthetic lifecycle tests and historical pilot evidence. They establish only the bounded behaviors they test. A later attended P1 → continuation → P2 pilot **completed successfully** with two bounded automated sends, three source work sessions and both implementations reported done; its operational claim was subsequently archived. External review is still pending, and this is not proof of unattended reliability. Earlier P2-reconciliation pauses remain historical; the rendering/observation dependency and limitations are described in the [controlled diagnostic guide](../operations/browser-observation-diagnostics.md). See the [sanitized attended-MVP hand-in](../FLOWDECK_ATTENDED_MVP_HANDIN_2026-10-18.md).
 
-For operational use, consult the [human runbook](../FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) and the [operations index](../README.md#current-entry-points), then independently confirm current approvals and runtime state. Historical records and proposals are not authorization.
+For operational use, follow [manual Mac testing](../operations/manual-mac-testing/README.md) and the [documentation index](../README.md). Use current configured runtime state, not historical pilot identifiers. The autonomous runtime has additional controller/cursor/process/evidence modules, but its complete live composition remains an integration milestone, not demonstrated unattended operation.

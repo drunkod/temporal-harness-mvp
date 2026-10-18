@@ -26,7 +26,7 @@ Do not rebuild an operator's frozen runtime during a live execution. The origina
 | Broader portable tier | `npm run test:portable` | Builds; not fully service-independent |
 | Full repository | `npm test` | Builds; may require checkout-local historical evidence/integrations |
 | Temporal synthetic | See [script catalog](scripts/README.md) | Real test executions with fake activities; requires server |
-| Browser no-send / live | [Human runbook](docs/FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) | Explicit operator environment and controlled scope |
+| Browser no-send / live | [Manual Mac testing](docs/operations/manual-mac-testing/README.md) | Explicit operator environment and controlled scope |
 
 A passing fixture suite is not evidence of successful live delivery. Record skipped tests and service assumptions honestly.
 
@@ -42,7 +42,7 @@ A passing fixture suite is not evidence of successful live delivery. Record skip
 
 ## Documentation
 
-Start at [docs/README.md](docs/README.md). Put current architecture in `docs/architecture/`, operating contracts in `docs/operations/`, proposals in `docs/plans/`, and superseded evidence in `docs/history/`. Research stays in `docs/research/`.
+Start at [docs/README.md](docs/README.md). Keep current architecture in `docs/architecture/`, operating contracts and step-by-step tests in `docs/operations/`, and update the single MVP plan in `docs/plans/`. Do not add competing roadmaps, dated launch recipes or research dumps. Superseded tracked documents are recoverable from Git history; private run evidence belongs outside the documentation tree.
 
 Some root-level documentation paths are compatibility exceptions. Consult [FILE-MAP.md](docs/FILE-MAP.md) before renaming them. Historical path/hash manifests should not be silently rewritten after documentation moves.
 

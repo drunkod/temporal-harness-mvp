@@ -1,28 +1,28 @@
-# Documentation index
+# Flowdeck MVP documentation
 
-This directory contains current navigation, engineering records, plans, and retained evidence. **Moving or editing documents invalidates historical document manifests** that recorded their paths or hashes; manifests under `.state/` are intentionally not updated. File organization is not sanitization: historical records may include local paths, service identifiers, conversation/project IDs, or run IDs. Review each historical document before any public release. Nothing in this index approves publication.
+## Start here
 
-## Current entry points
+| Need | Document |
+|---|---|
+| Test the app on your Mac, step by step | [Manual Mac testing](operations/manual-mac-testing/README.md) |
+| Know the MVP goal and next implementation work | [Single MVP implementation plan](plans/FLOWDECK_AUTONOMOUS_MVP_PROGRAMMER_GUIDE.md) |
+| Understand the existing system | [Architecture overview](architecture/overview.md) |
+| Run developer checks | [Autonomy runner reference](operations/flowdeck-autonomy-runner.md) |
+| Understand source events | [Work-event contract](operations/FLOWDECK-WORK-EVENTS.md) |
+| Diagnose browser observation | [Browser diagnostics](operations/browser-observation-diagnostics.md) |
+| See the reported attended demonstration | [Attended MVP hand-in](FLOWDECK_ATTENDED_MVP_HANDIN_2026-10-18.md) |
 
-- [Architecture overview](architecture/overview.md) — concise description of the current implementation.
-- [Work-event contract](operations/FLOWDECK-WORK-EVENTS.md) — event semantics.
-- [Fresh attended pilot runbook](operations/FLOWDECK_FRESH_ATTENDED_PILOT_RUNBOOK_2026-10-16.md) — proposal only; not authorization.
-- [Human runbook](FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) — stable human-facing operational reference; verify current state before acting.
-- [Publishing review](publishing.md) — publication guidance.
-- [File map](FILE-MAP.md) — relocation ledger and stable-path exceptions.
+## Current boundary
 
-## Historical and non-authorizing records
+A bounded attended P1 → continuation → P2 cycle is documented as completed, with external review pending. That historical result is not a fresh test of the current checkout. Fully automatic initial launch and the complete unattended production composition still need executable integration and acceptance. The manual runbooks distinguish current runnable stages from missing implementation.
 
-`history/` preserves dated implementation notes, reviews, incident/recovery records, handoffs, test evidence, and superseded procedures. `plans/` retains design and roadmap material, including proposals that are not current authority. These records are historical context, not authorization to run a workflow, send a message, or perform a live operation. The stable-path task contracts and artifacts listed in [FILE-MAP](FILE-MAP.md) remain at their original locations for code/test compatibility and are also historical records.
+The delivery order is **one task → observed result → continuation → second task → automatic start → bounded unattended campaign**. No new dashboard, framework, database or multi-project scheduler is required for this MVP.
 
-## Local-only evidence and research
+## Compatibility and maintenance
 
-`research/` retains source research and its existing provenance records. Historical evidence may refer to ignored `.state/` artifacts or local-only resources that are not part of a public checkout. Their presence or a historical test result does not establish current readiness. Do not publish without a separate content and privacy review.
+- [Supervisor reference](FLOWDECK-SUPERVISOR-RUNBOOK.md) is the stable help destination used by the CLI.
+- [Legacy human-runbook entry](FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) redirects existing references to the current step files.
+- [File map and retained fixtures](FILE-MAP.md) explains why a few dated contract/JSON files remain.
+- [Publication checklist](publishing.md) applies when distributing the repository; it is not another manual-test stage.
 
-## Publication review
-
-All moved/edited historical documentation requires review before public release. This organization preserves evidence and does not remove private details. In particular, check for local filesystem paths, identifiers, and references to local `.state/` data. See [publishing.md](publishing.md) for the separate publication process.
-
-## Current status note
-
-The latest P1 attempt is paused. The isolated null-task-identity fix is not deployed. Do not infer unattended or live end-to-end success from earlier test results or pilot records.
+Superseded research, historical handoffs, dated launch recipes and duplicate plans were removed from the active tree. Tracked versions remain in Git history. A local pre-cleanup archive also preserves untracked material; it is not part of the commit. Runtime state and executable source were not cleaned or reset.

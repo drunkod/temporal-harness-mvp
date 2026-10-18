@@ -6,7 +6,7 @@ An owner submits the first task once. Flowdeck adopts that conversation, observe
 
 Implementation completion is recorded as **`implementation_done / review_pending`**. Code review, acceptance, merging, and release belong to external systems.
 
-> **Maturity:** development MVP, not unattended production automation. Synthetic orchestration and real-browser no-send checks have passed in the development environment. The latest attended pilot paused during identity correlation; a complete current live two-task cycle has not been demonstrated. Historical reports describe their own builds, not guarantees for this checkout.
+> **Maturity:** development MVP, not unattended production automation. A bounded attended two-task cycle is documented as completed, with independent review pending. Automatic initial launch and the complete unattended production composition still need integration and acceptance. Historical results describe their tested builds, not guarantees for this checkout.
 
 ## Start here
 
@@ -14,11 +14,12 @@ Implementation completion is recorded as **`implementation_done / review_pending
 |---|---|
 | Understand the system | [Architecture](docs/architecture/overview.md) |
 | Find documentation | [Documentation index](docs/README.md) |
-| Test on the configured MacBook | [Human runbook](docs/FLOWDECK_HUMAN_RUNBOOK_2026-10-16.md) — environment-specific |
+| Test on the configured MacBook | [Step-by-step manual tests](docs/operations/manual-mac-testing/README.md) |
+| Finish the MVP | [Single implementation plan](docs/plans/FLOWDECK_AUTONOMOUS_MVP_PROGRAMMER_GUIDE.md) |
 | Understand event delivery | [Work-event bridge](docs/operations/FLOWDECK-WORK-EVENTS.md) |
 | Contribute safely | [Contributing](CONTRIBUTING.md) |
 | Prepare a GitHub release | [Publication checklist](docs/publishing.md) |
-| Find a relocated document | [Document file map](docs/FILE-MAP.md) |
+| Understand retained compatibility files | [Document file map](docs/FILE-MAP.md) |
 
 ## Architecture
 
@@ -74,14 +75,14 @@ Safe inspection entrypoints include:
 ```sh
 node scripts/flowdeck-supervisor.mjs --help
 node scripts/flowdeck-supervisor.mjs status
-node scripts/flowdeck-work-events.mjs --help
+node scripts/flowdeck-launch.mjs --help
 ```
 
 `status` is a saved projection; it can be stale. Authoritative execution inspection uses `workflow-status` with the exact configured workflow identity. See the [script catalog](scripts/README.md) for commands grouped by side effects.
 
 **Never delete `.state` to retry a test.** It contains claims, bindings, inboxes, and audit journals. An uncertain send must be reconciled, not repeated. Browser-owner claims are checkout-local, not machine-wide across clones. Stopping a launcher does not itself cancel the Temporal execution or undo an in-flight browser action.
 
-The root `seed`, `worker`, `start`, and `verify` npm scripts belong to the **historical fixture**, not the active Flowdeck supervisor. Historical documentation is retained for context, not as current launch instructions.
+The root `seed`, `worker`, `start`, and `verify` npm scripts belong to the **historical fixture**, not the active Flowdeck supervisor. Required historical contracts and fixtures remain for compatibility, not as current launch instructions.
 
 ## Repository layout
 
@@ -92,7 +93,7 @@ tests/        Automated tests (see CONTRIBUTING.md for scope)
 public/       Dashboard assets
 widgets/      Optional Jazz status widget and its own dependency lockfile
 examples/     Non-executable configuration examples; generated fixtures are ignored
-docs/         Index, architecture, operations, plans, history, research
+docs/         MVP plan, manual test steps, architecture, operating references
 .state/       Ignored local runtime/evidence — never publish or reset casually
 dist/         Ignored build output
 ```
